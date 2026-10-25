@@ -1,0 +1,42 @@
+package uk.co.aaronburt.rtsp.ui
+
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import uk.co.aaronburt.rtsp.player.LiveStreamController
+
+@Composable
+fun PlayerSurface(controller: LiveStreamController, modifier: Modifier = Modifier) {
+    val frameSize by controller.frameSize.collectAsStateWithLifecycle()
+    val aspect = frameSize?.aspectRatio?.takeIf { it > 0f }
+    AndroidView(
+        modifier = modifier.then(if (aspect != null) Modifier.aspectRatio(aspect) else Modifier.fillMaxSize()),
+        factory = { context ->
+            SurfaceView(context).apply {
+                keepScreenOn = true
+                holder.addCallback(object : SurfaceHolder.Callback {
+                    override fun surfaceCreated(holder: SurfaceHolder) {
+                        controller.setSurface(holder.surface)
+                    }
+
+                    override fun surfaceChanged(
+                        holder: SurfaceHolder,
+                        format: Int,
+                        width: Int,
+                        height: Int,
+                    ) = Unit
+
+                    override fun surfaceDestroyed(holder: SurfaceHolder) {
+                        controller.clearSurface(holder.surface)
+                    }
+                })
+            }
+        },
+    )
+}

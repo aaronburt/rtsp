@@ -103,6 +103,23 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Remote added: https://github.com/aaronburt/rtsp. main and chunk/01-build-baseline pushed, PR 1 opened. build.yml passed on GitHub Actions with JDK 17 (assembleDebug, testDebugUnitTest, lintDebug). Actions warn that setup-java v4 is deprecated in favour of v5 and that Node 20 actions are being forced to Node 24; revisit when bumping action versions.
 - Still open: play a real RTSP URL over TCP and UDP on a device or emulator (needs Aaron's URL and a device; emulator AVD satellite exists).
 
+### Chunk 4 result (2026-10-25, branch chunk/04-player-engine)
+- Player interface: player/PlayerEngine.kt (setSurface, setMuted, load, stop, release, listener callbacks). Media3Engine is the only implementation; a libVLC engine in chunk 9 implements the same interface.
+- LiveStreamController owns everything engine-independent: state machine (Idle, Connecting, Buffering, Playing, Reconnecting, Failed), Main/Sub switch, TCP/UDP switch, latency switch, backoff reconnect (1s doubling to 30s, 10 attempts then Failed with a Retry), 15s stall watchdog, pause/resume, release. Stream config is plain in-memory input (StreamConfig), nothing is stored.
+- Latency maps to DefaultLoadControl bufferForPlayback and bufferForPlaybackAfterRebuffer (presets 0, 250, 500, 1000, 2000 ms). Changing transport, quality or latency rebuilds the ExoPlayer and restarts the stream.
+- UDP is requested by not forcing RTP over TCP. Media3 can fall back to TCP by itself if UDP setup fails, so UDP mode may silently end up on TCP.
+- Media3Engine releases the whole ExoPlayer on stop and every reconnect, so decoders are freed when the screen is left or the app is stopped. After leaving the live view only the process-wide ExoPlayer:Frame, ExoPlayer:Backg and MediaCodec looper threads remain; no ExoPlayer:Playback or loader threads.
+- Live view (ui/LiveViewScreen.kt, ui/PlayerSurface.kt): SurfaceView, tap to toggle overlay, immersive mode, keep screen on, status panel with spinner, reconnect countdown and Retry. MainActivity already declares configChanges, so rotation does not recreate the activity. The old StreamScreen and createRtspPlayer were removed; media3-ui dependency dropped, kotlinx-coroutines-android and kotlinx-coroutines-test added (Apache 2.0).
+- RtspApp only gained an optional Sub URL field and now opens LiveViewScreen with a StreamConfig.
+- Tests: 26 new JVM tests (ReconnectPolicy, StreamConfig, LiveStreamController with a fake engine and virtual time). assembleDebug, testDebugUnitTest and lintDebug pass (lint: 0 errors, warnings only).
+- Real stream test on an emulator against Aaron's camera: Main and Sub both play over TCP and UDP, switching restarts correctly, cutting the emulator's network shows Reconnecting with backoff and keeps the last frame, restoring it recovers on its own. The camera URL and credentials are not stored anywhere in the repo.
+- Error text for a lost connection is generic (ERROR_CODE_IO_UNSPECIFIED covers many causes); wrong credentials and wrong path show up as a Media3 RTSP exception and get the "check path and credentials" message, but that mapping is unverified against a camera that rejects auth. Chunk 6's probe is the place for precise errors.
+- The shared satellite emulator was being used by the chunk 2 thread at the same time, so a second AVD (rtsp-test, same system image) was created for this test.
+
+### Chunk 4 integration with chunk 2 (open)
+- Chunk 2's PlayerSlot is (Camera, Modifier) -> Unit, which cannot carry quality, mute or state. Wiring needs the slot to receive a controller (or quality and muted) from LiveViewModel; the follow-up should replace chunk 2's StreamQuality enum with player.StreamQuality, map data.Transport (Auto, Tcp, Udp) to RtspTransport (Auto means TCP for now), and render PlayerSurface(controller) inside the slot.
+- Expect a conflict in RtspApp.kt when chunk 2 and chunk 4 meet; take chunk 2's version and keep LiveViewScreen only until the slot is wired.
+
 ## Backburner
 - ONVIF discovery and profile import (WS-Discovery, GetProfiles, GetStreamUri, Discover button in the add-camera form). Was chunk 8.
 - ONVIF PTZ (ContinuousMove, Stop, presets, on-screen joystick and zoom). Was chunk 9.
