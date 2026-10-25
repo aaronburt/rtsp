@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
@@ -99,12 +100,14 @@ fun MultiviewScreen(
                         val camera = state.all.getOrNull(row * layout.columns + column)
                         Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                             if (camera != null) {
-                                MultiviewTile(
-                                    camera = camera,
-                                    playerSlot = playerSlot,
-                                    onOpen = { onOpenCamera(camera.id) },
-                                    onRetry = { viewModel.retry(camera.id) },
-                                )
+                                key(camera.id) {
+                                    MultiviewTile(
+                                        camera = camera,
+                                        playerSlot = playerSlot,
+                                        onOpen = { onOpenCamera(camera.id) },
+                                        onRetry = { viewModel.retry(camera.id) },
+                                    )
+                                }
                             }
                         }
                     }
