@@ -1,70 +1,176 @@
 package uk.co.aaronburt.rtsp.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import uk.co.aaronburt.rtsp.player.StreamConfig
-import uk.co.aaronburt.rtsp.player.isRtspUrl
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import uk.co.aaronburt.rtsp.R
+import uk.co.aaronburt.rtsp.data.AppContainer
+import uk.co.aaronburt.rtsp.ui.cameras.CamerasScreen
+import uk.co.aaronburt.rtsp.ui.cameras.CamerasViewModel
+import uk.co.aaronburt.rtsp.ui.components.PlaceholderScreen
+import uk.co.aaronburt.rtsp.ui.form.CameraFormScreen
+import uk.co.aaronburt.rtsp.ui.form.CameraFormViewModel
+import uk.co.aaronburt.rtsp.ui.live.LiveScreen
+import uk.co.aaronburt.rtsp.ui.live.LiveViewModel
+import uk.co.aaronburt.rtsp.ui.live.PlaceholderPlayerSlot
+import uk.co.aaronburt.rtsp.ui.live.PlayerSlot
+import uk.co.aaronburt.rtsp.ui.multiview.MultiviewScreen
+
+object Routes {
+    const val Cameras = "cameras"
+    const val Multiview = "multiview"
+    const val Recordings = "recordings"
+    const val Settings = "settings"
+    const val Live = "live/{id}"
+    const val Add = "camera/add"
+    const val Edit = "camera/{id}/edit"
+
+    fun live(id: String) = "live/$id"
+
+    fun edit(id: String) = "camera/$id/edit"
+}
+
+private data class TopLevel(val route: String, val label: Int, val icon: Int)
+
+private val topLevel = listOf(
+    TopLevel(Routes.Cameras, R.string.nav_cameras, R.drawable.ic_videocam),
+    TopLevel(Routes.Multiview, R.string.nav_multiview, R.drawable.ic_grid_view),
+    TopLevel(Routes.Recordings, R.string.nav_recordings, R.drawable.ic_video_library),
+    TopLevel(Routes.Settings, R.string.nav_settings, R.drawable.ic_settings),
+)
+
+private val barRoutes = setOf(Routes.Cameras, Routes.Recordings, Routes.Settings)
 
 @Composable
-fun RtspApp() {
-    var url by rememberSaveable { mutableStateOf("") }
-    var subUrl by rememberSaveable { mutableStateOf("") }
-    var playing by rememberSaveable { mutableStateOf(false) }
+fun RtspApp(
+    container: AppContainer,
+    modifier: Modifier = Modifier,
+    playerSlot: PlayerSlot = PlaceholderPlayerSlot,
+) {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val destination = backStackEntry?.destination
+    val showBar = destination?.route in barRoutes
 
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        if (playing) {
-            LiveViewScreen(
-                config = StreamConfig(
-                    name = "Camera",
-                    mainUrl = url,
-                    subUrl = subUrl.ifBlank { null },
-                ),
-                onClose = { playing = false },
-            )
-        } else {
-            Column(
-                modifier = Modifier.safeDrawingPadding().padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text("RTSP", style = MaterialTheme.typography.headlineLarge)
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = { url = it },
-                    label = { Text("Main stream URL") },
-                    placeholder = { Text("rtsp://192.168.1.10:554/stream1") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = subUrl,
-                    onValueChange = { subUrl = it },
-                    label = { Text("Sub stream URL (optional)") },
-                    placeholder = { Text("rtsp://192.168.1.10:554/stream2") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Button(
-                    onClick = { playing = true },
-                    enabled = isRtspUrl(url) && (subUrl.isBlank() || isRtspUrl(subUrl)),
-                ) {
-                    Text("Watch")
+    Scaffold(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            if (showBar) {
+                NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+                    topLevel.forEach { item ->
+                        val selected = destination?.hierarchy?.any { it.route == item.route } == true
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = item.route != Routes.Multiview
+                                }
+                            },
+                            icon = {
+                                Icon(painter = painterResource(item.icon), contentDescription = null)
+                            },
+                            label = { Text(stringResource(item.label)) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
+                        )
+                    }
                 }
+            }
+        },
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = Routes.Cameras,
+            modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+        ) {
+            composable(Routes.Cameras) {
+                CamerasScreen(
+                    viewModel = viewModel(factory = CamerasViewModel.factory(container)),
+                    onOpenCamera = { navController.navigate(Routes.live(it)) },
+                    onAddCamera = { navController.navigate(Routes.Add) },
+                    onEditCamera = { navController.navigate(Routes.edit(it)) },
+                )
+            }
+            composable(Routes.Multiview) {
+                MultiviewScreen(
+                    viewModel = viewModel(factory = CamerasViewModel.factory(container)),
+                    playerSlot = playerSlot,
+                    onOpenCamera = { navController.navigate(Routes.live(it)) },
+                    onExit = { navController.popBackStack() },
+                )
+            }
+            composable(Routes.Recordings) {
+                PlaceholderScreen(
+                    title = stringResource(R.string.nav_recordings),
+                    message = stringResource(R.string.recordings_placeholder),
+                )
+            }
+            composable(Routes.Settings) {
+                PlaceholderScreen(
+                    title = stringResource(R.string.nav_settings),
+                    message = stringResource(R.string.settings_placeholder),
+                )
+            }
+            composable(
+                route = Routes.Live,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) {
+                LiveScreen(
+                    viewModel = viewModel(factory = LiveViewModel.factory(container)),
+                    playerSlot = playerSlot,
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate(Routes.edit(it)) },
+                )
+            }
+            composable(Routes.Add) {
+                CameraFormScreen(
+                    viewModel = viewModel(factory = CameraFormViewModel.factory(container)),
+                    onClose = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                    onDeleted = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.Edit,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) {
+                CameraFormScreen(
+                    viewModel = viewModel(factory = CameraFormViewModel.factory(container)),
+                    onClose = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                    onDeleted = { navController.popBackStack(Routes.Cameras, inclusive = false) },
+                )
             }
         }
     }

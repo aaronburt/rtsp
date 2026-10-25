@@ -39,13 +39,16 @@ class LiveStreamController(
         engine.setListener(this)
     }
 
-    fun start(config: StreamConfig) {
+    fun start(config: StreamConfig, quality: StreamQuality? = null) {
         if (released) return
-        val unchanged = config == requested && !suspended && _state.value != StreamState.Idle
+        val current = _active.value
+        val sameConfig = config == requested
+        val wanted = quality ?: if (sameConfig) current?.quality ?: StreamQuality.Main else StreamQuality.Main
+        val unchanged = sameConfig && current?.quality == wanted && !suspended && _state.value != StreamState.Idle
         requested = config
         suspended = false
         if (unchanged) return
-        _active.value = ActiveStream(config, StreamQuality.Main)
+        _active.value = ActiveStream(config, wanted)
         connectFresh()
     }
 

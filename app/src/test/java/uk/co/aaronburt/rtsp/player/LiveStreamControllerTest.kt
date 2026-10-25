@@ -289,4 +289,29 @@ class LiveStreamControllerTest {
         controller.setMuted(false)
         assertEquals(false, engine.muted)
     }
+
+    @Test
+    fun startWithQualityLoadsThatStreamAndChangesRestartOnce() = runTest {
+        val engine = FakeEngine()
+        val controller = controller(engine)
+        controller.start(config, StreamQuality.Sub)
+        assertEquals("rtsp://h/sub", engine.loads.last().url)
+        controller.start(config, StreamQuality.Sub)
+        assertEquals(1, engine.loads.size)
+        controller.start(config, StreamQuality.Main)
+        assertEquals("rtsp://h/main", engine.loads.last().url)
+        assertEquals(2, engine.loads.size)
+    }
+
+    @Test
+    fun zeroAttemptsFailsImmediatelyWithoutReconnect() = runTest {
+        val engine = FakeEngine()
+        val controller = controller(engine, policy = ReconnectPolicy(maxAttempts = 0))
+        controller.start(config)
+        engine.attached!!.onError("down")
+        assertEquals(StreamState.Failed("down"), controller.state.value)
+        advanceTimeBy(60_000)
+        runCurrent()
+        assertEquals(1, engine.loads.size)
+    }
 }

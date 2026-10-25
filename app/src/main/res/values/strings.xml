@@ -1,4 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RTSP</string>
+
+    <string name="nav_cameras">Cameras</string>
+    <string name="nav_multiview">Multiview</string>
+    <string name="nav_recordings">Recordings</string>
+    <string name="nav_settings">Settings</string>
+    <string name="recordings_placeholder">Recordings and snapshots will appear here.</string>
+    <string name="settings_placeholder">Playback and status settings will appear here.</string>
+
+    <string name="cameras_title">Cameras</string>
+    <string name="cameras_online">%1$d online</string>
+    <string name="cameras_offline">%1$d offline</string>
+    <string name="cameras_search">Search cameras</string>
+    <string name="cameras_close_search">Close search</string>
+    <string name="cameras_search_hint">Search by name</string>
+    <string name="cameras_no_match">No cameras match.</string>
+    <string name="filter_all">All</string>
+    <string name="filter_offline">Offline</string>
+    <string name="filter_favourites">Favourites</string>
+    <string name="camera_offline_since">Offline since %1$s</string>
+    <string name="camera_missing">This camera no longer exists.</string>
+    <string name="retry">Retry</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
+    <string name="back">Back</string>
+    <string name="close">Close</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="favourite">Favourite</string>
+    <string name="unfavourite">Remove from favourites</string>
+
+    <string name="add_camera">Add camera</string>
+    <string name="edit_camera">Edit camera</string>
+    <string name="delete_camera">Delete camera</string>
+    <string name="delete_camera_title">Delete camera?</string>
+    <string name="delete_camera_message">%1$s will be removed from this device.</string>
+    <string name="save_camera">Save camera</string>
+    <string name="field_name">Name</string>
+    <string name="field_url">RTSP URL</string>
+    <string name="field_url_hint">Any username and password in the URL move to the fields below.</string>
+    <string name="field_username">Username</string>
+    <string name="field_password">Password</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="field_transport">Transport</string>
+    <string name="transport_auto">Auto</string>
+    <string name="transport_tcp">TCP</string>
+    <string name="transport_udp">UDP</string>
+    <string name="field_latency">Latency buffer</string>
+    <string name="field_latency_hint">Lower is closer to live. Higher rides out Wi-Fi drops.</string>
+    <string name="latency_ms">%1$d ms</string>
+    <string name="field_reconnect">Auto-reconnect</string>
+    <string name="field_reconnect_hint">Retry with backoff when the stream drops</string>
+    <string name="field_muted">Start muted</string>
+    <string name="field_muted_hint">Audio stays off until you unmute</string>
+    <string name="error_name">Enter a name.</string>
+    <string name="error_url">Enter an rtsp:// address.</string>
+
+    <string name="fullscreen">Fullscreen</string>
+    <string name="exit_fullscreen">Exit fullscreen</string>
+    <string name="rec_badge">REC %1$s</string>
+    <string name="record">Record</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="action_snapshot">Snapshot</string>
+    <string name="action_mute">Mute</string>
+    <string name="action_unmute">Unmute</string>
+    <string name="stream_main">Main stream</string>
+    <string name="stream_sub">Sub stream</string>
+    <string name="stream_main_short">Main</string>
+    <string name="stream_sub_short">Sub</string>
+    <string name="stream_details">Stream details</string>
+    <string name="buffer_ms">%1$d ms buffer</string>
+    <string name="detail_url">URL</string>
+    <string name="detail_transport">Transport</string>
+    <string name="detail_reconnect">Auto-reconnect</string>
+
+    <string name="multiview_open">Open %1$s</string>
+    <string name="multiview_exit">Exit multiview</string>
+    <string name="player_connecting">Connecting</string>
+    <string name="player_buffering">Buffering</string>
+    <string name="player_reconnecting">Reconnecting in %1$ds (attempt %2$d of %3$d)</string>
+    <string name="player_failed">Could not connect</string>
+    <string name="player_retry">Retry</string>
 </resources>
