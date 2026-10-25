@@ -24,6 +24,7 @@ fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifie
     val showClock by preferences.showClock.collectAsStateWithLifecycle()
     val allowRecording by preferences.allowRecording.collectAsStateWithLifecycle()
     val pinchToZoom by preferences.pinchToZoom.collectAsStateWithLifecycle()
+    val multiviewMainStream by preferences.multiviewMainStream.collectAsStateWithLifecycle()
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -41,6 +42,12 @@ fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifie
             )
         }
         SettingsSection(title = stringResource(R.string.settings_live_title)) {
+            SwitchRow(
+                title = stringResource(R.string.settings_multiview_main_stream_title),
+                subtitle = stringResource(R.string.settings_multiview_main_stream_subtitle),
+                checked = multiviewMainStream,
+                onCheckedChange = preferences::setMultiviewMainStream,
+            )
             SwitchRow(
                 title = stringResource(R.string.settings_pinch_to_zoom_title),
                 subtitle = stringResource(R.string.settings_pinch_to_zoom_subtitle),

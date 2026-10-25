@@ -10,26 +10,36 @@ interface DisplayPreferences {
     val showClock: StateFlow<Boolean>
     val allowRecording: StateFlow<Boolean>
     val pinchToZoom: StateFlow<Boolean>
+    val multiviewMainStream: StateFlow<Boolean>
 
     fun setShowClock(show: Boolean)
 
     fun setAllowRecording(allow: Boolean)
 
     fun setPinchToZoom(enabled: Boolean)
+
+    fun setMultiviewMainStream(enabled: Boolean)
 }
 
 class InMemoryDisplayPreferences(
     initialShowClock: Boolean = false,
     initialAllowRecording: Boolean = false,
     initialPinchToZoom: Boolean = false,
+    initialMultiviewMainStream: Boolean = false,
 ) : DisplayPreferences {
     private val mutableShowClock = MutableStateFlow(initialShowClock)
     private val mutableAllowRecording = MutableStateFlow(initialAllowRecording)
     private val mutablePinchToZoom = MutableStateFlow(initialPinchToZoom)
+    private val mutableMultiviewMainStream = MutableStateFlow(initialMultiviewMainStream)
 
     override val showClock: StateFlow<Boolean> = mutableShowClock.asStateFlow()
     override val allowRecording: StateFlow<Boolean> = mutableAllowRecording.asStateFlow()
     override val pinchToZoom: StateFlow<Boolean> = mutablePinchToZoom.asStateFlow()
+    override val multiviewMainStream: StateFlow<Boolean> = mutableMultiviewMainStream.asStateFlow()
+
+    override fun setMultiviewMainStream(enabled: Boolean) {
+        mutableMultiviewMainStream.value = enabled
+    }
 
     override fun setPinchToZoom(enabled: Boolean) {
         mutablePinchToZoom.value = enabled
@@ -49,10 +59,17 @@ class SharedDisplayPreferences(private val prefs: SharedPreferences) : DisplayPr
 
     private val mutableAllowRecording = MutableStateFlow(prefs.getBoolean(KEY_ALLOW_RECORDING, false))
     private val mutablePinchToZoom = MutableStateFlow(prefs.getBoolean(KEY_PINCH_TO_ZOOM, false))
+    private val mutableMultiviewMainStream = MutableStateFlow(prefs.getBoolean(KEY_MULTIVIEW_MAIN_STREAM, false))
 
     override val showClock: StateFlow<Boolean> = mutableShowClock.asStateFlow()
     override val allowRecording: StateFlow<Boolean> = mutableAllowRecording.asStateFlow()
     override val pinchToZoom: StateFlow<Boolean> = mutablePinchToZoom.asStateFlow()
+    override val multiviewMainStream: StateFlow<Boolean> = mutableMultiviewMainStream.asStateFlow()
+
+    override fun setMultiviewMainStream(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_MULTIVIEW_MAIN_STREAM, enabled).apply()
+        mutableMultiviewMainStream.value = enabled
+    }
 
     override fun setPinchToZoom(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_PINCH_TO_ZOOM, enabled).apply()
@@ -74,6 +91,7 @@ class SharedDisplayPreferences(private val prefs: SharedPreferences) : DisplayPr
         private const val KEY_SHOW_CLOCK = "show_clock"
         private const val KEY_ALLOW_RECORDING = "allow_recording"
         private const val KEY_PINCH_TO_ZOOM = "pinch_to_zoom"
+        private const val KEY_MULTIVIEW_MAIN_STREAM = "multiview_main_stream"
 
         fun create(context: Context) =
             SharedDisplayPreferences(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE))

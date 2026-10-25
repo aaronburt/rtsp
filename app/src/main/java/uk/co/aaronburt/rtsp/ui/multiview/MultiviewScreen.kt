@@ -77,6 +77,7 @@ fun MultiviewScreen(
     onOpenCamera: (String) -> Unit,
     onExit: () -> Unit,
     showClock: Boolean,
+    useMainStream: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -103,6 +104,7 @@ fun MultiviewScreen(
                                 key(camera.id) {
                                     MultiviewTile(
                                         camera = camera,
+                                        quality = if (useMainStream) StreamQuality.Main else StreamQuality.Sub,
                                         playerSlot = playerSlot,
                                         onOpen = { onOpenCamera(camera.id) },
                                         onRetry = { viewModel.retry(camera.id) },
@@ -127,6 +129,7 @@ fun MultiviewScreen(
 @Composable
 private fun MultiviewTile(
     camera: Camera,
+    quality: StreamQuality,
     playerSlot: PlayerSlot,
     onOpen: () -> Unit,
     onRetry: () -> Unit,
@@ -148,7 +151,7 @@ private fun MultiviewTile(
             .semantics(mergeDescendants = true) { contentDescription = camera.name },
     ) {
         if (camera.online) {
-            playerSlot(camera, StreamQuality.Sub, true, Modifier.fillMaxSize()) { playerStatus = it }
+            playerSlot(camera, quality, true, Modifier.fillMaxSize()) { playerStatus = it }
         } else {
             Box(
                 modifier = Modifier

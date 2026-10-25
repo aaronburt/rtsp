@@ -80,6 +80,7 @@ fun RtspApp(
     val showClock by container.displayPreferences.showClock.collectAsStateWithLifecycle()
     val allowRecording by container.displayPreferences.allowRecording.collectAsStateWithLifecycle()
     val pinchToZoom by container.displayPreferences.pinchToZoom.collectAsStateWithLifecycle()
+    val multiviewMainStream by container.displayPreferences.multiviewMainStream.collectAsStateWithLifecycle()
 
     UpdatePrompt()
 
@@ -143,6 +144,7 @@ fun RtspApp(
                     onOpenCamera = { navController.navigate(Routes.live(it)) },
                     onExit = { navController.popBackStack() },
                     showClock = showClock,
+                    useMainStream = multiviewMainStream,
                 )
             }
             composable(Routes.Recordings) {

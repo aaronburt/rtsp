@@ -80,6 +80,8 @@
     <string name="status_error">Offline</string>
     <string name="settings_recording_title">Recording</string>
     <string name="settings_live_title">Live view</string>
+    <string name="settings_multiview_main_stream_title">Use main stream in multiview</string>
+    <string name="settings_multiview_main_stream_subtitle">Uses the main stream for every tile instead of the sub stream. Uses more bandwidth and processing power.</string>
     <string name="settings_pinch_to_zoom_title">Pinch to zoom</string>
     <string name="settings_pinch_to_zoom_subtitle">Off by default. Zoom up to 4× and drag to pan in the single-camera view.</string>
     <string name="reset_zoom">Reset zoom</string>
