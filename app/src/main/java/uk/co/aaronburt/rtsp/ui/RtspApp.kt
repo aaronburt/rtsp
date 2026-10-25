@@ -1,5 +1,7 @@
 package uk.co.aaronburt.rtsp.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -117,6 +119,10 @@ fun RtspApp(
             navController = navController,
             startDestination = Routes.Cameras,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
         ) {
             composable(Routes.Cameras) {
                 CamerasScreen(
