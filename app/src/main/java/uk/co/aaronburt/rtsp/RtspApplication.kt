@@ -9,6 +9,7 @@ import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.data.PersistentCameraRepository
 import uk.co.aaronburt.rtsp.snapshot.FileSnapshotStore
 import uk.co.aaronburt.rtsp.storage.createSavedCameraRepository
+import uk.co.aaronburt.rtsp.update.Updater
 
 class RtspApplication : Application() {
     lateinit var container: AppContainer
@@ -23,5 +24,6 @@ class RtspApplication : Application() {
             ),
             snapshotStore = FileSnapshotStore(File(filesDir, "snapshots")),
         )
+        Updater.start(this)
     }
 }

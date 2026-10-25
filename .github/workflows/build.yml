@@ -27,12 +27,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble, test and lint
-        run: ./gradlew assembleDebug testDebugUnitTest lintDebug
+        run: ./gradlew assembleDebug assembleGithubRelease testFdroidDebugUnitTest testGithubDebugUnitTest lintFdroidDebug lintGithubDebug
 
       - uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: debug-apks
+          path: app/build/outputs/apk/*/debug/*.apk
 
       - uses: actions/upload-artifact@v4
         if: failure()

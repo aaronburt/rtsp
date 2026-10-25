@@ -7,6 +7,17 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val releaseVersion: String = (
+    System.getenv("RELEASE_VERSION")?.takeIf { it.isNotBlank() }
+        ?: providers.gradleProperty("releaseVersion").orNull
+        ?: "0.1.0"
+    ).removePrefix("v")
+
+val releaseVersionCode: Int = Regex("""^(\d+)\.(\d+)\.(\d+)""").find(releaseVersion)
+    ?.destructured
+    ?.let { (major, minor, patch) -> major.toInt() * 10000 + minor.toInt() * 100 + patch.toInt() }
+    ?: error("releaseVersion must start with major.minor.patch, got $releaseVersion")
+
 android {
     namespace = "uk.co.aaronburt.rtsp"
     compileSdk = 36
@@ -15,9 +26,20 @@ android {
         applicationId = "uk.co.aaronburt.rtsp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = releaseVersionCode
+        versionName = releaseVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("github") {
+            dimension = "distribution"
+            buildConfigField("String", "UPDATE_REPO", "\"aaronburt/rtsp\"")
+        }
+        create("fdroid") {
+            dimension = "distribution"
+        }
     }
 
     val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
@@ -54,6 +76,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -90,6 +113,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    "testGithubImplementation"(libs.json)
 
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
