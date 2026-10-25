@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uk.co.aaronburt.rtsp.R
+import uk.co.aaronburt.rtsp.ui.components.SettingsSection
 import uk.co.aaronburt.rtsp.ui.components.SwitchRow
 import uk.co.aaronburt.rtsp.update.UpdateSettingsSection
 
@@ -30,22 +31,20 @@ fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifie
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(text = stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium)
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = stringResource(R.string.settings_display_title),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            SwitchRow(
-                title = stringResource(R.string.settings_show_clock_title),
-                subtitle = stringResource(R.string.settings_show_clock_subtitle),
-                checked = showClock,
-                onCheckedChange = preferences::setShowClock,
-            )
+        SettingsSection(title = stringResource(R.string.settings_recording_title)) {
             SwitchRow(
                 title = stringResource(R.string.settings_allow_recording_title),
                 subtitle = stringResource(R.string.settings_allow_recording_subtitle),
                 checked = allowRecording,
                 onCheckedChange = preferences::setAllowRecording,
+            )
+        }
+        SettingsSection(title = stringResource(R.string.settings_live_title)) {
+            SwitchRow(
+                title = stringResource(R.string.settings_show_clock_title),
+                subtitle = stringResource(R.string.settings_show_clock_subtitle),
+                checked = showClock,
+                onCheckedChange = preferences::setShowClock,
             )
         }
         UpdateSettingsSection()

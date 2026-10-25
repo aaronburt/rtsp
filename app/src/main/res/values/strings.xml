@@ -9,8 +9,10 @@
     <string name="recordings_placeholder">Recordings and snapshots will appear here.</string>
 
     <string name="cameras_title">Cameras</string>
-    <string name="cameras_online">%1$d online</string>
-    <string name="cameras_offline">%1$d offline</string>
+    <plurals name="cameras_count">
+        <item quantity="one">%1$d camera</item>
+        <item quantity="other">%1$d cameras</item>
+    </plurals>
     <string name="cameras_search">Search cameras</string>
     <string name="cameras_close_search">Close search</string>
     <string name="cameras_search_hint">Search by name</string>
@@ -65,7 +67,6 @@
 
     <string name="fullscreen">Fullscreen</string>
     <string name="exit_fullscreen">Exit fullscreen</string>
-    <string name="rec_badge">REC %1$s</string>
     <string name="record">Record</string>
     <string name="stop_recording">Stop recording</string>
     <string name="action_snapshot">Snapshot</string>
@@ -73,17 +74,16 @@
     <string name="action_unmute">Unmute</string>
     <string name="stream_main">Main stream</string>
     <string name="stream_sub">Sub stream</string>
-    <string name="stream_main_short">Main</string>
-    <string name="stream_sub_short">Sub</string>
     <string name="stream_details">Stream details</string>
     <string name="status_live">Live</string>
     <string name="status_pending">Connecting</string>
     <string name="status_error">Offline</string>
-    <string name="settings_display_title">Display</string>
-    <string name="settings_show_clock_title">Show clock</string>
+    <string name="settings_recording_title">Recording</string>
+    <string name="settings_live_title">Live view</string>
+    <string name="settings_show_clock_title">Show clock on video</string>
     <string name="settings_allow_recording_title">Allow recording</string>
-    <string name="settings_allow_recording_subtitle">Show the Record button on the live view</string>
-    <string name="settings_show_clock_subtitle">Show the time over live video and in multiview</string>
+    <string name="settings_allow_recording_subtitle">Shows the Record button on the live view</string>
+    <string name="settings_show_clock_subtitle">Off by default</string>
     <string name="detail_url">URL</string>
     <string name="detail_transport">Transport</string>
     <string name="detail_reconnect">Auto-reconnect</string>

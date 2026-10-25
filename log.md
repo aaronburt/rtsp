@@ -166,6 +166,9 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Measured on the satellite emulator with screen recordings of tapping the camera, then Back: before, the video faded out over roughly 0.5 s; after, the swap is a single frame.
 - Side effect: all screen changes in the app are now cuts instead of fades. A per-route transition (live view only) is the alternative if Aaron wants fades elsewhere.
 
+### Release results (2026-10-25)
+- v0.1.0 and v0.1.1 were published by release.yml from tags on main; apksigner reports one signer with a v2 signature. The release APK is signed with a different key than local debug builds, so a debug build must be uninstalled before a release build can be installed over it (this wipes the saved cameras on that device).
+- Updater verified on the satellite emulator: v0.1.0 installed from the GitHub release, the launch check offered v0.1.1 with notes, download passed the signature check, and after allowing installs from the app the update installed. Aaron confirmed it works.
 ### Live view status dot, clock toggle, buffer label removed (2026-10-25, branch feature/live-view-status-dot)
 - The "timer" on the live view was the wall-clock HH:mm:ss pill at the top right of the video (the REC elapsed badge is a different element and is unchanged). It is now hidden by default. Settings has a Display section with a "Show clock" switch, stored in the "display" SharedPreferences (ui/settings/DisplayPreferences.kt, exposed through AppContainer.displayPreferences). The switch also controls the clock on the multiview control rail.
 - The "N ms buffer" label and the old online/offline dot in the stats row are gone from the live view. The per-camera latency setting is untouched and still applies to playback; the buffer_ms string was removed because nothing uses it any more.
@@ -175,3 +178,21 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Allow recording: Settings > Display also has an "Allow recording" switch, off by default. The Record button on the live view is hidden unless it is on (or a recording is already running). Recording itself is still a placeholder timer. Checked on rtsp-test: button absent by default, present after enabling.
 - Not done: the design mockup's "1080p · 25 fps" label has no counterpart in the app yet; showing resolution and frame rate in Stream details needs the player to expose the video format first.
 - The Recordings tab in the bottom nav is also hidden unless Allow recording is on. Checked on rtsp-test: tab present with the switch on, gone with it off.
+
+### UI redesign pass (2026-10-25, branch feature/ui-redesign, stacked on feature/live-view-status-dot)
+- Source: Aaron's "RTSP Viewer redesign" mockup, latest version with his own edits and resolved comments.
+- Live view: REC badge removed from the video (the Stop recording button already carries the timer). The status dot moved from the video overlay into the stats row, replacing the Main/Sub label; it stays on the video only in fullscreen, where the row is not shown. The clock is shown over the video only when "Show clock on video" is on.
+- Recordings tab is only in the bottom bar when Allow recording is on.
+- Cameras: the dashed Add camera tile is gone (adding is the + button), and the header shows a static "N camera(s)" count instead of online/offline counts.
+- Settings: sections as uppercase headers over cards (Recording, Live view, Updates). The Updates card shows "Version x / GitHub build" with a Check for updates button, with progress, release notes and Download/Install below it. F-Droid flavor still has no Updates section.
+- Not implemented from the mockup: resolution/fps/codec/bitrate lines in Stream details (the player does not expose fps, codec or bitrate through the slot; frame size exists only inside LiveStreamController), resolution in the Main/Sub toggle labels, Talk, PiP and the PTZ panel, "Find on network" and the connection-test footer in Add camera, the Stream defaults and Coming soon sections in Settings, the accent colour tweak panel and placeholder data.
+- Verified: testGithubDebugUnitTest, assembleGithubDebug, assembleFdroidDebug and lintGithubDebug pass. Checked cameras list, live view (connecting state with a dummy camera) and Settings on an emulator. Recordings tab with Allow recording on, the REC-less recording state and fullscreen dot were not exercised on a device.
+- Process note: the first emulator used (perf, emulator-5558) belonged to the performance thread; I installed a debug build and cleared app data there before being told. Reported to the coordinator.
+
+### Multiview shows the wrong camera after a layout change (2026-10-25, branch fix/multiview-layout-switch)
+- Symptom (v0.2.0): switching layouts, for example 2x3 to 2x2, left a tile with the label of one camera and the video of another, and a tile that stayed black.
+- Cause: the grid is built from nested repeat loops, so every tile was identified by its grid position, not by its camera. When the layout changed, the tile at a given position got a different camera but Compose reused the old tile's state. Media3Player also created its coroutine scope once per composition, while its controller was recreated per camera id; the old controller's dispose cancelled that shared scope, which also killed the new controller created for the new camera, so that tile never played.
+- Fix: MultiviewTile is wrapped in key(camera.id) so a tile follows its camera, and the player scope is remembered per camera id with the controller derived from it, so disposing one camera's player cannot cancel another's.
+- Verified on the satellite emulator with a local MediaMTX server and six ffmpeg test sources, each a different colour: before the fix 2x2 showed the Camera 4 label over the Camera 5 video and an empty Camera 5 tile; after it, labels and video match in 1, 2x2 and 2x3 and when switching between them.
+- No regression test: the repo has no Compose UI test setup, and the failing behaviour needs real players.
+- Emulator note: the goldfish H.264 decoder fails to initialise when six streams start at once with 640x360 baseline test streams; 1280x720 main-profile sources decoded fine. Camera 5 and 6 in 2x3 hit that limit on the emulator.
