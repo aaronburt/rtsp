@@ -88,7 +88,7 @@ fun RtspApp(
         bottomBar = {
             if (showBar) {
                 NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-                    topLevel.forEach { item ->
+                    topLevel.filter { allowRecording || it.route != Routes.Recordings }.forEach { item ->
                         val selected = destination?.hierarchy?.any { it.route == item.route } == true
                         NavigationBarItem(
                             selected = selected,
