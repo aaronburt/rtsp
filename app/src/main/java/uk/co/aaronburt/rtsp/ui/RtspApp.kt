@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -76,6 +77,7 @@ fun RtspApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
     val showBar = destination?.route in barRoutes
+    val showClock by container.displayPreferences.showClock.collectAsStateWithLifecycle()
 
     UpdatePrompt()
 
@@ -138,6 +140,7 @@ fun RtspApp(
                     playerSlot = playerSlot,
                     onOpenCamera = { navController.navigate(Routes.live(it)) },
                     onExit = { navController.popBackStack() },
+                    showClock = showClock,
                 )
             }
             composable(Routes.Recordings) {
@@ -147,7 +150,7 @@ fun RtspApp(
                 )
             }
             composable(Routes.Settings) {
-                SettingsScreen()
+                SettingsScreen(preferences = container.displayPreferences)
             }
             composable(
                 route = Routes.Live,
@@ -158,6 +161,7 @@ fun RtspApp(
                     playerSlot = playerSlot,
                     onBack = { navController.popBackStack() },
                     onEdit = { navController.navigate(Routes.edit(it)) },
+                    showClock = showClock,
                 )
             }
             composable(Routes.Add) {

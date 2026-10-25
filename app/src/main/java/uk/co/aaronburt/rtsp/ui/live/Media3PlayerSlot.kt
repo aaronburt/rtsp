@@ -14,6 +14,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -41,6 +42,8 @@ import uk.co.aaronburt.rtsp.player.RtspTransport
 import uk.co.aaronburt.rtsp.player.StreamConfig
 import uk.co.aaronburt.rtsp.player.StreamQuality
 import uk.co.aaronburt.rtsp.player.StreamState
+import uk.co.aaronburt.rtsp.player.StreamStatus
+import uk.co.aaronburt.rtsp.player.toStatus
 import uk.co.aaronburt.rtsp.player.withCredentials
 import uk.co.aaronburt.rtsp.snapshot.SurfaceCapture
 import uk.co.aaronburt.rtsp.ui.PlayerSurface
@@ -53,8 +56,8 @@ private const val RECONNECT_ATTEMPTS = 10
 private const val SNAPSHOT_FIRST_FRAME_DELAY_MS = 2_000L
 private const val SNAPSHOT_REFRESH_MS = 60_000L
 
-val Media3PlayerSlot: PlayerSlot = { camera, quality, muted, modifier ->
-    Media3Player(camera, quality, muted, modifier)
+val Media3PlayerSlot: PlayerSlot = { camera, quality, muted, modifier, onStatus ->
+    Media3Player(camera, quality, muted, modifier, onStatus)
 }
 
 @Composable
@@ -63,6 +66,7 @@ private fun Media3Player(
     quality: StreamQuality,
     muted: Boolean,
     modifier: Modifier,
+    onStatus: (StreamStatus) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
@@ -100,6 +104,8 @@ private fun Media3Player(
     }
 
     val state by controller.state.collectAsStateWithLifecycle()
+    val currentOnStatus by rememberUpdatedState(onStatus)
+    LaunchedEffect(state) { currentOnStatus(state.toStatus()) }
     val snapshot = rememberSnapshot(camera.id)
     val backdropAlpha by animateFloatAsState(
         targetValue = if (state == StreamState.Playing) 0f else 1f,

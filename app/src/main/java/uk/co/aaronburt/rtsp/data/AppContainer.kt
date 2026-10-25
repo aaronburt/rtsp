@@ -8,10 +8,13 @@ import uk.co.aaronburt.rtsp.snapshot.SnapshotPruningRepository
 import uk.co.aaronburt.rtsp.snapshot.SnapshotRecorder
 import uk.co.aaronburt.rtsp.snapshot.SnapshotStore
 import uk.co.aaronburt.rtsp.snapshot.StoreSnapshotRecorder
+import uk.co.aaronburt.rtsp.ui.settings.DisplayPreferences
+import uk.co.aaronburt.rtsp.ui.settings.InMemoryDisplayPreferences
 
 class AppContainer(
     repository: CameraRepository = FakeCameraRepository(),
     val snapshotStore: SnapshotStore = NoSnapshotStore,
+    val displayPreferences: DisplayPreferences = InMemoryDisplayPreferences(),
 ) {
     val cameraRepository: CameraRepository = SnapshotPruningRepository(repository, snapshotStore)
 
