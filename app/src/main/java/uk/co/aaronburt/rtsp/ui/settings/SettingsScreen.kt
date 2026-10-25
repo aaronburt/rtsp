@@ -21,6 +21,7 @@ import uk.co.aaronburt.rtsp.update.UpdateSettingsSection
 @Composable
 fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifier) {
     val showClock by preferences.showClock.collectAsStateWithLifecycle()
+    val allowRecording by preferences.allowRecording.collectAsStateWithLifecycle()
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -39,6 +40,12 @@ fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifie
                 subtitle = stringResource(R.string.settings_show_clock_subtitle),
                 checked = showClock,
                 onCheckedChange = preferences::setShowClock,
+            )
+            SwitchRow(
+                title = stringResource(R.string.settings_allow_recording_title),
+                subtitle = stringResource(R.string.settings_allow_recording_subtitle),
+                checked = allowRecording,
+                onCheckedChange = preferences::setAllowRecording,
             )
         }
         UpdateSettingsSection()

@@ -78,6 +78,7 @@ fun RtspApp(
     val destination = backStackEntry?.destination
     val showBar = destination?.route in barRoutes
     val showClock by container.displayPreferences.showClock.collectAsStateWithLifecycle()
+    val allowRecording by container.displayPreferences.allowRecording.collectAsStateWithLifecycle()
 
     UpdatePrompt()
 
@@ -162,6 +163,7 @@ fun RtspApp(
                     onBack = { navController.popBackStack() },
                     onEdit = { navController.navigate(Routes.edit(it)) },
                     showClock = showClock,
+                    allowRecording = allowRecording,
                 )
             }
             composable(Routes.Add) {

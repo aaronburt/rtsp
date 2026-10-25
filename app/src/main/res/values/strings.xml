@@ -81,6 +81,8 @@
     <string name="status_error">Offline</string>
     <string name="settings_display_title">Display</string>
     <string name="settings_show_clock_title">Show clock</string>
+    <string name="settings_allow_recording_title">Allow recording</string>
+    <string name="settings_allow_recording_subtitle">Show the Record button on the live view</string>
     <string name="settings_show_clock_subtitle">Show the time over live video and in multiview</string>
     <string name="detail_url">URL</string>
     <string name="detail_transport">Transport</string>

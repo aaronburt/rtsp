@@ -73,6 +73,7 @@ fun LiveScreen(
     onBack: () -> Unit,
     onEdit: (String) -> Unit,
     showClock: Boolean,
+    allowRecording: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -147,11 +148,13 @@ fun LiveScreen(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            RecordButton(
-                recording = state.recording,
-                seconds = state.recordingSeconds,
-                onClick = viewModel::toggleRecording,
-            )
+            if (allowRecording || state.recording) {
+                RecordButton(
+                    recording = state.recording,
+                    seconds = state.recordingSeconds,
+                    onClick = viewModel::toggleRecording,
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionButton(
                     icon = R.drawable.ic_photo_camera,
