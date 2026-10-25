@@ -177,6 +177,7 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Known, not changed: if an RTSP server disappears while the TCP session is open, the player can stay in Playing with a frozen frame for a long time, so the dot stays green until Media3 reports an error.
 - Allow recording: Settings > Display also has an "Allow recording" switch, off by default. The Record button on the live view is hidden unless it is on (or a recording is already running). Recording itself is still a placeholder timer. Checked on rtsp-test: button absent by default, present after enabling.
 - Not done: the design mockup's "1080p · 25 fps" label has no counterpart in the app yet; showing resolution and frame rate in Stream details needs the player to expose the video format first.
+- The Recordings tab in the bottom nav is also hidden unless Allow recording is on. Checked on rtsp-test: tab present with the switch on, gone with it off.
 
 ### UI redesign pass (2026-10-25, branch feature/ui-redesign, stacked on feature/live-view-status-dot)
 - Source: Aaron's "RTSP Viewer redesign" mockup, latest version with his own edits and resolved comments.
