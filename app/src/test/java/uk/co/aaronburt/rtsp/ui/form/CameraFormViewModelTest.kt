@@ -65,4 +65,33 @@ class CameraFormViewModelTest {
         CameraFormViewModel("garden", repository).delete()
         assertEquals(null, repository.get("garden"))
     }
+
+    @Test
+    fun subUrlIsOptionalButMustBeRtspWhenGiven() {
+        assertFalse(validateForm("Cam", "rtsp://host/s", "").any)
+        assertFalse(validateForm("Cam", "rtsp://host/s", "rtsp://u:p@host/sub").any)
+        assertTrue(validateForm("Cam", "rtsp://host/s", "http://host/sub").subUrlInvalid)
+    }
+
+    @Test
+    fun savesSubUrlWithoutCredentials() {
+        val repository = FakeCameraRepository(emptyList())
+        val form = CameraFormViewModel(null, repository)
+        form.setName("Shed")
+        form.setUrl("rtsp://10.0.0.9/main")
+        form.setSubUrl("rtsp://a:b@10.0.0.9/sub")
+        assertTrue(form.save())
+        assertEquals("rtsp://10.0.0.9/sub", repository.cameras.value.single().subUrl)
+    }
+
+    @Test
+    fun blankSubUrlIsStoredAsNull() {
+        val repository = FakeCameraRepository(emptyList())
+        val form = CameraFormViewModel(null, repository)
+        form.setName("Shed")
+        form.setUrl("rtsp://10.0.0.9/main")
+        form.setSubUrl("  ")
+        assertTrue(form.save())
+        assertEquals(null, repository.cameras.value.single().subUrl)
+    }
 }

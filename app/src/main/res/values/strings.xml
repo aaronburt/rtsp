@@ -41,6 +41,8 @@
     <string name="save_camera">Save camera</string>
     <string name="field_name">Name</string>
     <string name="field_url">RTSP URL</string>
+    <string name="field_sub_url">Sub stream URL (optional)</string>
+    <string name="field_sub_url_hint">Lower resolution stream used by the Sub toggle.</string>
     <string name="field_url_hint">Any username and password in the URL move to the fields below.</string>
     <string name="field_username">Username</string>
     <string name="field_password">Password</string>

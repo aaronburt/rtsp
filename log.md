@@ -132,6 +132,14 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Error text for a lost connection is generic (ERROR_CODE_IO_UNSPECIFIED covers many causes); wrong credentials and wrong path show up as a Media3 RTSP exception and get the "check path and credentials" message, but that mapping is unverified against a camera that rejects auth. Chunk 6's probe is the place for precise errors.
 - The shared satellite emulator was being used by the chunk 2 thread at the same time, so a second AVD (rtsp-test, same system image) was created for this test.
 
+### Persistence wiring (2026-10-25, branch chunk/05-persist-cameras)
+- Aaron lifted the Wave A no-storage rule for this step: the app now keeps cameras across restarts. RtspApplication.onCreate builds AppContainer with PersistentCameraRepository, an adapter from the UI Camera model to chunk 3's SavedCameraRepository (Room plus Keystore AES-GCM for passwords). AppContainer takes the repository as a constructor argument and still defaults to FakeCameraRepository for tests.
+- The container is created in onCreate, not in a property initializer, because the Room and Keystore setup needs the application context.
+- Camera gained subUrl; the add/edit form has an optional Sub stream URL field (validated as rtsp://, credentials stripped like the main URL) and Media3PlayerSlot passes it to the player, so the Sub toggle now plays the sub stream.
+- The app starts empty on a fresh install; the six sample cameras only exist for tests. Online/offline is not persisted: every saved camera shows online and Retry does nothing until chunk 6 adds status checks.
+- Checked on the satellite emulator: add a camera with main and sub URL, force-stop the app, relaunch, the camera is still there and plays; the Sub toggle switches to the sub stream.
+- Caveat: only the password field is encrypted. If a camera needs credentials inside the URL query string (for example ...?user=admin&password=...), that part of mainUrl and subUrl is stored in the database as plain text.
+
 ## Backburner
 - ONVIF discovery and profile import (WS-Discovery, GetProfiles, GetStreamUri, Discover button in the add-camera form). Was chunk 8.
 - ONVIF PTZ (ContinuousMove, Stop, presets, on-screen joystick and zoom). Was chunk 9.
