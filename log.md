@@ -165,3 +165,7 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Fix: RtspApp sets enter, exit, popEnter and popExit transitions to None on the NavHost, so the live screen leaves the composition on the same frame as the back press and the destination swap is instant.
 - Measured on the satellite emulator with screen recordings of tapping the camera, then Back: before, the video faded out over roughly 0.5 s; after, the swap is a single frame.
 - Side effect: all screen changes in the app are now cuts instead of fades. A per-route transition (live view only) is the alternative if Aaron wants fades elsewhere.
+
+### Release results (2026-10-25)
+- v0.1.0 and v0.1.1 were published by release.yml from tags on main; apksigner reports one signer with a v2 signature. The release APK is signed with a different key than local debug builds, so a debug build must be uninstalled before a release build can be installed over it (this wipes the saved cameras on that device).
+- Updater verified on the satellite emulator: v0.1.0 installed from the GitHub release, the launch check offered v0.1.1 with notes, download passed the signature check, and after allowing installs from the app the update installed. Aaron confirmed it works.
