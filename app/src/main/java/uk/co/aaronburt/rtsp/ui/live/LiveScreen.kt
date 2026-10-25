@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,7 +62,6 @@ import uk.co.aaronburt.rtsp.ui.theme.Amber
 import uk.co.aaronburt.rtsp.ui.theme.Danger
 import uk.co.aaronburt.rtsp.ui.theme.MonoSmall
 import uk.co.aaronburt.rtsp.ui.theme.OnDangerContainer
-import uk.co.aaronburt.rtsp.ui.theme.RecordBadge
 import uk.co.aaronburt.rtsp.ui.theme.RecordingContainer
 import uk.co.aaronburt.rtsp.ui.theme.RecordingText
 import uk.co.aaronburt.rtsp.ui.theme.Scrim
@@ -140,7 +140,7 @@ fun LiveScreen(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        StatsRow(state = state, onToggleDetails = viewModel::toggleDetails)
+        StatsRow(state = state, status = status, onToggleDetails = viewModel::toggleDetails)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -241,27 +241,7 @@ private fun VideoOverlays(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
-        if (state.recording) {
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(10.dp)
-                    .height(26.dp)
-                    .clip(RoundedCornerShape(13.dp))
-                    .background(RecordBadge)
-                    .padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.White))
-                Text(
-                    text = stringResource(R.string.rec_badge, formatElapsed(state.recordingSeconds)),
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        } else if (fullscreen) {
+        if (fullscreen) {
             OverlayButton(
                 icon = R.drawable.ic_arrow_back,
                 description = stringResource(R.string.back),
@@ -269,19 +249,21 @@ private fun VideoOverlays(
                 modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
             )
         }
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(10.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Scrim)
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            StatusDot(status = status)
-            if (showClock) {
-                Text(text = clock, style = MonoSmall, color = Color.White)
+        if (fullscreen || showClock) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(10.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Scrim)
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (fullscreen) StatusDot(status = status)
+                if (showClock) {
+                    Text(text = clock, style = MonoSmall, color = Color.White)
+                }
             }
         }
         OverlayButton(
@@ -314,7 +296,7 @@ private fun OverlayButton(
 }
 
 @Composable
-private fun StatsRow(state: LiveState, onToggleDetails: () -> Unit) {
+private fun StatsRow(state: LiveState, status: StreamStatus, onToggleDetails: () -> Unit) {
     val camera = state.camera ?: return
     Column {
         Row(
@@ -322,14 +304,8 @@ private fun StatsRow(state: LiveState, onToggleDetails: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(
-                text = stringResource(
-                    if (state.quality == StreamQuality.Main) R.string.stream_main_short else R.string.stream_sub_short,
-                ),
-                style = MonoSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
+            StatusDot(status = status)
+            Spacer(modifier = Modifier.weight(1f))
             OutlinedButton(
                 onClick = onToggleDetails,
                 modifier = Modifier
