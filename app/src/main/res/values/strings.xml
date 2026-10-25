@@ -80,4 +80,9 @@
 
     <string name="multiview_open">Open %1$s</string>
     <string name="multiview_exit">Exit multiview</string>
+    <string name="player_connecting">Connecting</string>
+    <string name="player_buffering">Buffering</string>
+    <string name="player_reconnecting">Reconnecting in %1$ds (attempt %2$d of %3$d)</string>
+    <string name="player_failed">Could not connect</string>
+    <string name="player_retry">Retry</string>
 </resources>

@@ -16,8 +16,7 @@ import kotlinx.coroutines.launch
 import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.data.CameraRepository
-
-enum class StreamQuality { Main, Sub }
+import uk.co.aaronburt.rtsp.player.StreamQuality
 
 data class LiveState(
     val camera: Camera? = null,

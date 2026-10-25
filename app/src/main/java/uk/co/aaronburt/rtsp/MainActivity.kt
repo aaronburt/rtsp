@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import uk.co.aaronburt.rtsp.ui.RtspApp
+import uk.co.aaronburt.rtsp.ui.live.Media3PlayerSlot
 import uk.co.aaronburt.rtsp.ui.theme.RtspTheme
 
 class MainActivity : ComponentActivity() {
@@ -14,7 +15,7 @@ class MainActivity : ComponentActivity() {
         val container = (application as RtspApplication).container
         setContent {
             RtspTheme {
-                RtspApp(container = container)
+                RtspApp(container = container, playerSlot = Media3PlayerSlot)
             }
         }
     }

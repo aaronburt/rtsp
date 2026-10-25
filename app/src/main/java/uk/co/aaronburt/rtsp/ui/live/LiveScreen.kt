@@ -27,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.movableContentOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +50,7 @@ import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.data.Transport
 import uk.co.aaronburt.rtsp.data.displayUrl
+import uk.co.aaronburt.rtsp.player.StreamQuality
 import uk.co.aaronburt.rtsp.ui.components.ImmersiveEffect
 import uk.co.aaronburt.rtsp.ui.components.SegmentedToggle
 import uk.co.aaronburt.rtsp.ui.components.formatElapsed
@@ -89,10 +92,15 @@ fun LiveScreen(
     ImmersiveEffect(enabled = fullscreen)
     BackHandler(enabled = userFullscreen) { userFullscreen = false }
     val clock = rememberClock()
+    val player = remember(camera.id) {
+        movableContentOf { current: Camera, quality: StreamQuality, muted: Boolean, videoModifier: Modifier ->
+            playerSlot(current, quality, muted, videoModifier)
+        }
+    }
 
     if (fullscreen) {
         Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
-            playerSlot(camera, Modifier.fillMaxSize())
+            player(camera, state.quality, state.muted, Modifier.fillMaxSize())
             VideoOverlays(
                 state = state,
                 clock = clock,
@@ -113,7 +121,7 @@ fun LiveScreen(
             onEdit = { onEdit(camera.id) },
         )
         Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black)) {
-            playerSlot(camera, Modifier.fillMaxSize())
+            player(camera, state.quality, state.muted, Modifier.fillMaxSize())
             VideoOverlays(
                 state = state,
                 clock = clock,

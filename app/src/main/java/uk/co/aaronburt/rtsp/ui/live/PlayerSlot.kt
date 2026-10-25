@@ -17,10 +17,11 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.absoluteValue
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
+import uk.co.aaronburt.rtsp.player.StreamQuality
 
-typealias PlayerSlot = @Composable (camera: Camera, modifier: Modifier) -> Unit
+typealias PlayerSlot = @Composable (camera: Camera, quality: StreamQuality, muted: Boolean, modifier: Modifier) -> Unit
 
-val PlaceholderPlayerSlot: PlayerSlot = { camera, modifier ->
+val PlaceholderPlayerSlot: PlayerSlot = { camera, _, _, modifier ->
     VideoPlaceholder(camera, modifier)
 }
 

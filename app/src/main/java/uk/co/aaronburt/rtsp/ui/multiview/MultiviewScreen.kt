@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
+import uk.co.aaronburt.rtsp.player.StreamQuality
 import uk.co.aaronburt.rtsp.ui.cameras.CamerasViewModel
 import uk.co.aaronburt.rtsp.ui.components.ImmersiveEffect
 import uk.co.aaronburt.rtsp.ui.components.LandscapeLockEffect
@@ -133,7 +134,7 @@ private fun MultiviewTile(
             .semantics(mergeDescendants = true) { contentDescription = camera.name },
     ) {
         if (camera.online) {
-            playerSlot(camera, Modifier.fillMaxSize())
+            playerSlot(camera, StreamQuality.Sub, true, Modifier.fillMaxSize())
         } else {
             Box(
                 modifier = Modifier
