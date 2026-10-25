@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +19,9 @@ import kotlin.math.absoluteValue
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.player.StreamQuality
+import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
+import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
+import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
 
 typealias PlayerSlot = @Composable (camera: Camera, quality: StreamQuality, muted: Boolean, modifier: Modifier) -> Unit
 
@@ -38,10 +42,16 @@ fun cameraTint(id: String): Color = tints[id.hashCode().absoluteValue % tints.si
 
 @Composable
 fun VideoPlaceholder(camera: Camera, modifier: Modifier = Modifier) {
+    val snapshot = rememberSnapshot(camera.id)
     Box(
         modifier = modifier.background(cameraTint(camera.id)),
         contentAlignment = Alignment.Center,
     ) {
+        if (snapshot != null) {
+            SnapshotImage(snapshot, Modifier.matchParentSize())
+            LastSeenChip(snapshot, Modifier.align(Alignment.BottomStart).padding(8.dp))
+            return@Box
+        }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp),

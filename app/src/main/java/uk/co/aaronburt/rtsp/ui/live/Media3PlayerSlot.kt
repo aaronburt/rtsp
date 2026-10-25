@@ -1,5 +1,6 @@
 package uk.co.aaronburt.rtsp.ui.live
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -26,6 +28,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.data.Transport
@@ -38,9 +42,16 @@ import uk.co.aaronburt.rtsp.player.StreamConfig
 import uk.co.aaronburt.rtsp.player.StreamQuality
 import uk.co.aaronburt.rtsp.player.StreamState
 import uk.co.aaronburt.rtsp.player.withCredentials
+import uk.co.aaronburt.rtsp.snapshot.SurfaceCapture
 import uk.co.aaronburt.rtsp.ui.PlayerSurface
+import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
+import uk.co.aaronburt.rtsp.ui.components.LocalSnapshotRecorder
+import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
+import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
 
 private const val RECONNECT_ATTEMPTS = 10
+private const val SNAPSHOT_FIRST_FRAME_DELAY_MS = 2_000L
+private const val SNAPSHOT_REFRESH_MS = 60_000L
 
 val Media3PlayerSlot: PlayerSlot = { camera, quality, muted, modifier ->
     Media3Player(camera, quality, muted, modifier)
@@ -59,8 +70,11 @@ private fun Media3Player(
         val attempts = if (camera.autoReconnect) RECONNECT_ATTEMPTS else 0
         LiveStreamController(Media3Engine(context), scope, ReconnectPolicy(maxAttempts = attempts))
     }
+    val recorder = LocalSnapshotRecorder.current
+    val capture = remember(camera.id) { SurfaceCapture() }
     DisposableEffect(controller) {
         onDispose {
+            if (controller.state.value == StreamState.Playing) recorder.record(camera.id, capture)
             controller.release()
             scope.cancel()
         }
@@ -72,11 +86,33 @@ private fun Media3Player(
     LaunchedEffect(controller, muted) { controller.setMuted(muted) }
     LaunchedEffect(controller, config, quality) { controller.start(config, quality) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { controller.resume() }
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { controller.pause() }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        if (controller.state.value == StreamState.Playing) recorder.record(camera.id, capture)
+        controller.pause()
+    }
+    LaunchedEffect(controller, recorder, capture) {
+        while (true) {
+            controller.state.first { it == StreamState.Playing }
+            delay(SNAPSHOT_FIRST_FRAME_DELAY_MS)
+            if (controller.state.value == StreamState.Playing) recorder.record(camera.id, capture)
+            delay(SNAPSHOT_REFRESH_MS)
+        }
+    }
 
     val state by controller.state.collectAsStateWithLifecycle()
+    val snapshot = rememberSnapshot(camera.id)
+    val backdropAlpha by animateFloatAsState(
+        targetValue = if (state == StreamState.Playing) 0f else 1f,
+        label = "snapshotBackdrop",
+    )
     Box(modifier = modifier) {
-        PlayerSurface(controller = controller, modifier = Modifier.matchParentSize())
+        PlayerSurface(controller = controller, modifier = Modifier.matchParentSize(), capture = capture)
+        if (snapshot != null && backdropAlpha > 0f) {
+            Box(modifier = Modifier.matchParentSize().alpha(backdropAlpha)) {
+                SnapshotImage(snapshot, Modifier.matchParentSize())
+                LastSeenChip(snapshot, Modifier.align(Alignment.BottomStart).padding(8.dp))
+            }
+        }
         StatusPanel(state = state, onRetry = controller::retry, modifier = Modifier.align(Alignment.Center))
     }
 }

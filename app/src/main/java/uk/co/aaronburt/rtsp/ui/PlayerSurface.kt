@@ -14,9 +14,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uk.co.aaronburt.rtsp.player.LiveStreamController
+import uk.co.aaronburt.rtsp.snapshot.SurfaceCapture
 
 @Composable
-fun PlayerSurface(controller: LiveStreamController, modifier: Modifier = Modifier) {
+fun PlayerSurface(
+    controller: LiveStreamController,
+    modifier: Modifier = Modifier,
+    capture: SurfaceCapture? = null,
+) {
     val frameSize by controller.frameSize.collectAsStateWithLifecycle()
     val aspect = frameSize?.aspectRatio?.takeIf { it > 0f }
     Box(modifier = modifier.background(Color.Black), contentAlignment = Alignment.Center) {
@@ -25,6 +30,7 @@ fun PlayerSurface(controller: LiveStreamController, modifier: Modifier = Modifie
             factory = { context ->
                 SurfaceView(context).apply {
                     keepScreenOn = true
+                    capture?.attach(this)
                     holder.addCallback(object : SurfaceHolder.Callback {
                         override fun surfaceCreated(holder: SurfaceHolder) {
                             controller.setSurface(holder.surface)

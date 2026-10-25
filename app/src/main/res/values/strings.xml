@@ -20,6 +20,8 @@
     <string name="filter_offline">Offline</string>
     <string name="filter_favourites">Favourites</string>
     <string name="camera_offline_since">Offline since %1$s</string>
+    <string name="snapshot_last_seen">Last seen %1$s</string>
+    <string name="snapshot_just_now">just now</string>
     <string name="camera_missing">This camera no longer exists.</string>
     <string name="retry">Retry</string>
     <string name="edit">Edit</string>

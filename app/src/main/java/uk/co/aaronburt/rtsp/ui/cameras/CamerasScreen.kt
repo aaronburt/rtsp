@@ -46,6 +46,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.ui.live.cameraTint
+import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
+import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
+import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
 import uk.co.aaronburt.rtsp.ui.theme.Amber
 import uk.co.aaronburt.rtsp.ui.theme.AmberBorder
 import uk.co.aaronburt.rtsp.ui.theme.Danger
@@ -226,6 +229,7 @@ private fun CameraTile(
 ) {
     val shape = RoundedCornerShape(14.dp)
     val offline = !camera.online
+    val snapshot = rememberSnapshot(camera.id)
     Surface(
         onClick = onClick,
         shape = shape,
@@ -243,6 +247,9 @@ private fun CameraTile(
                     .background(if (offline) OfflineVideo else cameraTint(camera.id)),
                 contentAlignment = Alignment.Center,
             ) {
+                if (snapshot != null) {
+                    SnapshotImage(snapshot, Modifier.matchParentSize(), alpha = if (offline) 0.35f else 1f)
+                }
                 if (offline) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -261,13 +268,17 @@ private fun CameraTile(
                         )
                     }
                 } else {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_videocam),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.28f),
-                        modifier = Modifier.size(22.dp),
-                    )
-                    camera.lastFrameAt?.let { time ->
+                    if (snapshot == null) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_videocam),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.28f),
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                    if (snapshot != null) {
+                        LastSeenChip(snapshot, Modifier.align(Alignment.BottomStart).padding(6.dp))
+                    } else camera.lastFrameAt?.let { time ->
                         Text(
                             text = time,
                             style = MonoTiny,
