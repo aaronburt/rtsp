@@ -19,22 +19,27 @@ import uk.co.aaronburt.rtsp.player.isRtspUrl
 data class FormErrors(
     val nameMissing: Boolean = false,
     val urlInvalid: Boolean = false,
+    val subUrlInvalid: Boolean = false,
 ) {
-    val any: Boolean get() = nameMissing || urlInvalid
+    val any: Boolean get() = nameMissing || urlInvalid || subUrlInvalid
 }
 
-fun validateForm(name: String, url: String): FormErrors {
+private fun isValidRtsp(url: String): Boolean {
     val cleaned = splitCredentials(url).url
-    return FormErrors(
-        nameMissing = name.isBlank(),
-        urlInvalid = !isRtspUrl(cleaned) || cleaned.removePrefix("rtsp://").isBlank(),
-    )
+    return isRtspUrl(cleaned) && cleaned.removePrefix("rtsp://").isNotBlank()
 }
+
+fun validateForm(name: String, url: String, subUrl: String = ""): FormErrors = FormErrors(
+    nameMissing = name.isBlank(),
+    urlInvalid = !isValidRtsp(url),
+    subUrlInvalid = subUrl.isNotBlank() && !isValidRtsp(subUrl),
+)
 
 data class FormState(
     val editingId: String? = null,
     val name: String = "",
     val url: String = "",
+    val subUrl: String = "",
     val username: String = "",
     val password: String = "",
     val transport: Transport = Transport.Tcp,
@@ -58,6 +63,7 @@ class CameraFormViewModel(
                 editingId = it.id,
                 name = it.name,
                 url = it.url,
+                subUrl = it.subUrl.orEmpty(),
                 username = it.username,
                 password = it.password,
                 transport = it.transport,
@@ -73,6 +79,8 @@ class CameraFormViewModel(
     fun setName(value: String) = change { it.copy(name = value) }
 
     fun setUrl(value: String) = change { it.copy(url = value) }
+
+    fun setSubUrl(value: String) = change { it.copy(subUrl = value) }
 
     fun setUsername(value: String) = change { it.copy(username = value) }
 
@@ -92,7 +100,7 @@ class CameraFormViewModel(
 
     fun save(): Boolean {
         val current = applyCredentials(mutableState.value)
-        val errors = validateForm(current.name, current.url)
+        val errors = validateForm(current.name, current.url, current.subUrl)
         mutableState.value = current.copy(errors = errors, showErrors = errors.any)
         if (errors.any) return false
         val base = existing ?: Camera(id = repository.newId(), name = "", url = "", lastFrameAt = null)
@@ -100,6 +108,7 @@ class CameraFormViewModel(
             base.copy(
                 name = current.name.trim(),
                 url = current.url,
+                subUrl = splitCredentials(current.subUrl).url.takeIf { it.isNotBlank() },
                 username = current.username.trim(),
                 password = current.password,
                 transport = current.transport,
@@ -118,7 +127,7 @@ class CameraFormViewModel(
     private fun change(transform: (FormState) -> FormState) {
         mutableState.update { current ->
             val next = transform(current)
-            if (next.showErrors) next.copy(errors = validateForm(next.name, next.url)) else next
+            if (next.showErrors) next.copy(errors = validateForm(next.name, next.url, next.subUrl)) else next
         }
     }
 

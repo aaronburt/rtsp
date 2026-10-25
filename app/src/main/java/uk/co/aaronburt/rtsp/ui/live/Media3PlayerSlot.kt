@@ -131,6 +131,7 @@ fun Camera.toStreamConfig(): StreamConfig {
     return StreamConfig(
         name = name,
         mainUrl = withCredentials(cleaned, username, password),
+        subUrl = subUrl?.takeIf { it.isNotBlank() }?.let { withCredentials(splitCredentials(it).url, username, password) },
         transport = when (transport) {
             Transport.Udp -> RtspTransport.UDP
             Transport.Tcp, Transport.Auto -> RtspTransport.TCP

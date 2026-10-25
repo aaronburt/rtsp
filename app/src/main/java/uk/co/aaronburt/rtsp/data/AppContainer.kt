@@ -1,5 +1,5 @@
 package uk.co.aaronburt.rtsp.data
 
-class AppContainer {
-    val cameraRepository: CameraRepository = FakeCameraRepository()
-}
+class AppContainer(
+    val cameraRepository: CameraRepository = FakeCameraRepository(),
+)

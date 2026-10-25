@@ -120,6 +120,15 @@ fun CameraFormScreen(
                 modifier = Modifier.onFocusChanged { if (!it.isFocused) viewModel.normaliseUrl() },
             )
             FormField(
+                value = state.subUrl,
+                onValueChange = viewModel::setSubUrl,
+                label = stringResource(R.string.field_sub_url),
+                supporting = stringResource(R.string.field_sub_url_hint),
+                error = if (state.errors.subUrlInvalid) stringResource(R.string.error_url) else null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+                mono = true,
+            )
+            FormField(
                 value = state.username,
                 onValueChange = viewModel::setUsername,
                 label = stringResource(R.string.field_username),
