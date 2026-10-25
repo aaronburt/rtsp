@@ -80,7 +80,7 @@ fun MultiviewScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var layoutIndex by rememberSaveable { mutableIntStateOf(GridLayout.Six.ordinal) }
+    var layoutIndex by rememberSaveable { mutableIntStateOf(GridLayout.Quad.ordinal) }
     val layout = GridLayout.entries[layoutIndex]
     val clock = rememberClock()
     LandscapeLockEffect()
