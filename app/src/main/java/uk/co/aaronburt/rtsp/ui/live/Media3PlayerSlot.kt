@@ -69,8 +69,8 @@ private fun Media3Player(
     onStatus: (StreamStatus) -> Unit,
 ) {
     val context = LocalContext.current
-    val scope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
-    val controller = remember(camera.id) {
+    val scope = remember(camera.id) { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
+    val controller = remember(scope) {
         val attempts = if (camera.autoReconnect) RECONNECT_ATTEMPTS else 0
         LiveStreamController(Media3Engine(context), scope, ReconnectPolicy(maxAttempts = attempts))
     }
