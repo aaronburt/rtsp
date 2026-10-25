@@ -101,7 +101,7 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Added .github/workflows/build.yml: assembleDebug, testDebugUnitTest, lintDebug on push to main and on pull requests, uploads the debug APK, uploads reports on failure. Not run yet, no remote exists.
 - assembleRelease without secrets succeeds with R8 and resource shrinking on and produces app-release-unsigned.apk (about 1.8 MB). release.yml copies app-release.apk, which only exists when the keystore secrets are present, so that step is only exercised by a real tag run.
 - Remote added: https://github.com/aaronburt/rtsp. main and chunk/01-build-baseline pushed, PR 1 opened. build.yml passed on GitHub Actions with JDK 17 (assembleDebug, testDebugUnitTest, lintDebug). Actions warn that setup-java v4 is deprecated in favour of v5 and that Node 20 actions are being forced to Node 24; revisit when bumping action versions.
-- Still open: play a real RTSP URL over TCP and UDP on a device or emulator (needs Aaron's URL and a device; emulator AVD satellite exists).
+- Playback check on the satellite emulator (API 36) against Aaron's LAN camera: the full-resolution main stream (stream=0) played live over TCP. Rebuilt with UDP as the default and it also played, but Media3 can fall back to TCP when UDP is blocked, so UDP is not proven to be the transport in use; confirm with the Settings transport toggle in chunk 7. The emulator reaches the LAN camera through NAT, no extra setup. The camera URL contains credentials and is not recorded here.
 
 ## Backburner
 - ONVIF discovery and profile import (WS-Discovery, GetProfiles, GetStreamUri, Discover button in the add-camera form). Was chunk 8.
