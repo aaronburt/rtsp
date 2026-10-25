@@ -18,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import uk.co.aaronburt.rtsp.player.isRtspUrl
 
 @Composable
 fun RtspApp() {
@@ -41,7 +42,7 @@ fun RtspApp() {
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Button(onClick = { playing = true }, enabled = url.startsWith("rtsp://")) {
+                Button(onClick = { playing = true }, enabled = isRtspUrl(url)) {
                     Text("Watch")
                 }
             }
