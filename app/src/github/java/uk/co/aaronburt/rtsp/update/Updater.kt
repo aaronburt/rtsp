@@ -4,6 +4,9 @@ import android.app.Application
 import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -13,17 +16,21 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uk.co.aaronburt.rtsp.BuildConfig
 import uk.co.aaronburt.rtsp.R
+import uk.co.aaronburt.rtsp.ui.components.SettingsSection
 
 object Updater {
     fun start(application: Application) {
@@ -58,24 +65,37 @@ fun UpdatePrompt() {
 @Composable
 fun UpdateSettingsSection(modifier: Modifier = Modifier) {
     val state by UpdateManager.state.collectAsStateWithLifecycle()
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = stringResource(R.string.update_section_title),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = stringResource(R.string.update_installed_version, BuildConfig.VERSION_NAME),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        UpdateProgress(state)
-        val available = (state as? UpdateState.Available)?.release
-        if (available != null) ReleaseNotesText(available.notes)
-        UpdateActions(state, onDone = {})
-        if (state !is UpdateState.Checking && state !is UpdateState.Downloading && state !is UpdateState.Installing) {
-            OutlinedButton(onClick = { UpdateManager.check() }) {
-                Text(stringResource(R.string.update_check))
+    SettingsSection(title = stringResource(R.string.update_section_title), modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = stringResource(R.string.update_installed_version, BuildConfig.VERSION_NAME),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.update_build_source),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (state !is UpdateState.Checking && state !is UpdateState.Downloading && state !is UpdateState.Installing) {
+                    FilledTonalButton(
+                        onClick = { UpdateManager.check() },
+                        modifier = Modifier.height(36.dp),
+                        contentPadding = PaddingValues(horizontal = 14.dp),
+                    ) {
+                        Text(stringResource(R.string.update_check), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
+            UpdateProgress(state)
+            val available = (state as? UpdateState.Available)?.release
+            if (available != null) ReleaseNotesText(available.notes)
+            UpdateActions(state, onDone = {})
         }
     }
 }

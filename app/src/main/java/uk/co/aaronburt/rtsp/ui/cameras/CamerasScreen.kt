@@ -36,8 +36,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -105,7 +105,6 @@ fun CamerasScreen(
                     )
                 }
             }
-            item { AddCameraTile(onClick = onAddCamera) }
         }
     }
 }
@@ -129,20 +128,11 @@ private fun CamerasHeader(
                     text = stringResource(R.string.cameras_title),
                     style = MaterialTheme.typography.headlineMedium,
                 )
-                Row {
-                    Text(
-                        text = stringResource(R.string.cameras_online, state.onlineCount),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (state.offlineCount > 0) {
-                        Text(
-                            text = " · " + stringResource(R.string.cameras_offline, state.offlineCount),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = DangerText,
-                        )
-                    }
-                }
+                Text(
+                    text = pluralStringResource(R.plurals.cameras_count, state.all.size, state.all.size),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             IconButton(onClick = onToggleSearch, modifier = Modifier.size(44.dp)) {
                 Icon(
@@ -347,35 +337,6 @@ private fun CameraTile(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun AddCameraTile(onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 131.dp),
-        shape = RoundedCornerShape(14.dp),
-        color = Color.Transparent,
-        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_add),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp),
-            )
-            Text(
-                text = stringResource(R.string.add_camera),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

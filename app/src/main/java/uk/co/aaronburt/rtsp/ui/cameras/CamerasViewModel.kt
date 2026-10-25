@@ -25,7 +25,6 @@ data class CamerasState(
     val searching: Boolean = false,
     val editing: Boolean = false,
 ) {
-    val onlineCount: Int get() = all.count { it.online }
     val offlineCount: Int get() = all.count { !it.online }
 }
 
