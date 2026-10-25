@@ -79,6 +79,7 @@ fun RtspApp(
     val showBar = destination?.route in barRoutes
     val showClock by container.displayPreferences.showClock.collectAsStateWithLifecycle()
     val allowRecording by container.displayPreferences.allowRecording.collectAsStateWithLifecycle()
+    val pinchToZoom by container.displayPreferences.pinchToZoom.collectAsStateWithLifecycle()
 
     UpdatePrompt()
 
@@ -164,6 +165,7 @@ fun RtspApp(
                     onEdit = { navController.navigate(Routes.edit(it)) },
                     showClock = showClock,
                     allowRecording = allowRecording,
+                    pinchToZoom = pinchToZoom,
                 )
             }
             composable(Routes.Add) {

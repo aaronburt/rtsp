@@ -74,6 +74,7 @@ fun LiveScreen(
     onEdit: (String) -> Unit,
     showClock: Boolean,
     allowRecording: Boolean,
+    pinchToZoom: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -98,14 +99,16 @@ fun LiveScreen(
     val statusState = remember(camera.id) { mutableStateOf(StreamStatus.Pending) }
     val status by statusState
     val player = remember(camera.id) {
-        movableContentOf { current: Camera, quality: StreamQuality, muted: Boolean, videoModifier: Modifier ->
-            playerSlot(current, quality, muted, videoModifier) { statusState.value = it }
+        movableContentOf { current: Camera, quality: StreamQuality, muted: Boolean, zoomEnabled: Boolean ->
+            ZoomableVideo(enabled = zoomEnabled) {
+                playerSlot(current, quality, muted, Modifier.fillMaxSize()) { statusState.value = it }
+            }
         }
     }
 
     if (fullscreen) {
         Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
-            player(camera, state.quality, state.muted, Modifier.fillMaxSize())
+            player(camera, state.quality, state.muted, pinchToZoom)
             VideoOverlays(
                 state = state,
                 clock = clock,
@@ -128,7 +131,7 @@ fun LiveScreen(
             onEdit = { onEdit(camera.id) },
         )
         Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black)) {
-            player(camera, state.quality, state.muted, Modifier.fillMaxSize())
+            player(camera, state.quality, state.muted, pinchToZoom)
             VideoOverlays(
                 state = state,
                 clock = clock,

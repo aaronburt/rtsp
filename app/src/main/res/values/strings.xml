@@ -80,6 +80,9 @@
     <string name="status_error">Offline</string>
     <string name="settings_recording_title">Recording</string>
     <string name="settings_live_title">Live view</string>
+    <string name="settings_pinch_to_zoom_title">Pinch to zoom</string>
+    <string name="settings_pinch_to_zoom_subtitle">Off by default. Zoom up to 4× and drag to pan in the single-camera view.</string>
+    <string name="reset_zoom">Reset zoom</string>
     <string name="settings_show_clock_title">Show clock on video</string>
     <string name="settings_allow_recording_title">Allow recording</string>
     <string name="settings_allow_recording_subtitle">Shows the Record button on the live view</string>
