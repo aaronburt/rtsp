@@ -205,3 +205,9 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 ### Main stream in multiview (2026-10-25, branch feature/multiview-main-stream)
 - Settings > Live view has a persistent "Use main stream in multiview" switch, off by default. Enabled selects Main for every tile in every grid layout; disabled keeps Sub, including the existing fallback to Main for cameras without a sub-stream URL. Single-camera live view already starts on Main and retains its Main/Sub selector.
 - The preference is passed through the multiview screen to each existing player slot, which uses the selected stream URL without changing the camera configuration. The settings description notes the additional bandwidth and processing needed for main streams.
+
+### README (2026-10-25, branch docs/readme)
+- Added README.md with the icon (branding/play-store-512.png), four screenshots in docs/screenshots (cameras, live, multiview, settings), a feature list, the install line and the licence. Aaron asked for this one explicitly, so it is an exception to the no-docs rule.
+- Screenshots were taken on the satellite emulator from the v0.2.4 release APK, scaled to 1080x1920 at 420 dpi with the status bar clock fixed at 10:00. The feeds were ffmpeg lavfi test patterns (testsrc2, smptehdbars, gradients and others) served by a local MediaMTX on port 8754 and reached through 10.0.2.2, so no real camera address, URL or credential appears anywhere. Port 8554 was already held by the emulator process itself.
+- Heavy lavfi sources (mandelbrot, rgbtestsrc, life) at 720p made the emulator buffer or report "Unsupported or corrupt stream", so the final feeds are 960x540 at crf 30 with a 1 Mbit cap. The Workshop tile has no snapshot, which is the normal placeholder.
+- Emulator size and density were reset, the demo mode status bar turned off and the emulator closed afterwards. The temp clone is C:\tmp\rtsp-readme and the work files are in C:\tmp\rtsp-readme-work.

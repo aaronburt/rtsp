@@ -28,7 +28,7 @@
 - Automatic reconnect with backoff
 - Multiview grids of 1, 2x2 or 2x3 using sub streams to save bandwidth
 - Favourites, search and last-seen snapshots
-- No accounts, no cloud, no analytics
+- No accounts and no cloud service
 
 ## Install
 
