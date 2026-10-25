@@ -11,9 +11,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val container = (application as RtspApplication).container
         setContent {
             RtspTheme {
-                RtspApp()
+                RtspApp(container = container)
             }
         }
     }

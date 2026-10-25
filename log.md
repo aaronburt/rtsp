@@ -103,6 +103,20 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Remote added: https://github.com/aaronburt/rtsp. main and chunk/01-build-baseline pushed, PR 1 opened. build.yml passed on GitHub Actions with JDK 17 (assembleDebug, testDebugUnitTest, lintDebug). Actions warn that setup-java v4 is deprecated in favour of v5 and that Node 20 actions are being forced to Node 24; revisit when bumping action versions.
 - Still open: play a real RTSP URL over TCP and UDP on a device or emulator (needs Aaron's URL and a device; emulator AVD satellite exists).
 
+### Chunk 2 result (2026-10-25, branch chunk/02-app-shell)
+- Wave A rule from Aaron: UI and player engine only, no on-device storage. Camera data is an in-memory FakeCameraRepository seeded with six sample cameras (one offline); chunk 3 replaces it behind the CameraRepository interface.
+- Theme: dark/amber colour scheme from the redesign (tokens in ui/theme/Theme.kt), Inter Tight and JetBrains Mono bundled as variable fonts in res/font (both SIL OFL, from google/fonts), so no downloadable fonts or Play Services.
+- Icons: Material Symbols Rounded vector drawables copied from google/material-design-icons (Apache 2.0) into res/drawable as ic_*.xml, used through painterResource. No icon font and no material-icons dependency.
+- Navigation: navigation-compose 2.9.5 with string routes (cameras, multiview, recordings, settings, live/{id}, camera/add, camera/{id}/edit). Bottom bar shows on cameras, recordings and settings; multiview hides it, locks landscape and goes immersive. Manual wiring: RtspApplication holds AppContainer, ViewModels are built by factories in each ViewModel's companion.
+- Live view plug-in point: ui/live/PlayerSlot.kt defines PlayerSlot = (Camera, Modifier) -> Unit and PlaceholderPlayerSlot. RtspApp(container, playerSlot) passes it to the live view and to multiview tiles, so the player engine only has to supply a slot. StreamScreen.kt and RtspPlayer.kt were left untouched for chunk 4.
+- Live view is landscape/fullscreen aware: landscape or the fullscreen button hides everything but the video and system bars.
+- Deliberately left out of the redesign because they are out of scope for now: PTZ card, Talk, PiP (ONVIF is on the Backburner), Find on network, Test connection button and result row (chunk 6), 3x3 multiview layout (plan says up to 6 tiles). Live stats row shows the configured buffer and stream choice instead of measured latency, resolution and fps, which only the player knows.
+- Placeholders: Record toggles a REC badge and timer but writes nothing (chunk 10), Snapshot is disabled, Recordings and Settings are empty screens, Main/Sub switch only changes UI state (chunk 4 wires it to the player), Retry on an offline tile just marks the fake camera online.
+- Add/edit form: name and rtsp:// validation, credentials typed into the URL move to the username and password fields on focus loss and on save, delete asks for confirmation. Password is held in the ViewModel only.
+- Camera model in data/Camera.kt is a UI-level draft; chunk 3 owns the real model and may reshape it.
+- Verified: assembleDebug, testDebugUnitTest (25 tests), lintDebug (0 errors) and assembleRelease pass locally. Walked the cameras, live, edit, add-with-errors and multiview screens on the emulator.
+- Tested on a 320x640dp emulator, where the cameras grid shows one column; the grid is adaptive (148dp minimum) so phones 340dp and wider get two columns.
+
 ## Backburner
 - ONVIF discovery and profile import (WS-Discovery, GetProfiles, GetStreamUri, Discover button in the add-camera form). Was chunk 8.
 - ONVIF PTZ (ContinuousMove, Stop, presets, on-screen joystick and zoom). Was chunk 9.
