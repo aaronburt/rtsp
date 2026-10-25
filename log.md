@@ -140,6 +140,13 @@ Each chunk is meant to be its own thread and its own PR on its own git branch (c
 - Checked on the satellite emulator: add a camera with main and sub URL, force-stop the app, relaunch, the camera is still there and plays; the Sub toggle switches to the sub stream.
 - Caveat: only the password field is encrypted. If a camera needs credentials inside the URL query string (for example ...?user=admin&password=...), that part of mainUrl and subUrl is stored in the database as plain text.
 
+### Camera snapshot previews (2026-10-25, branch feature/camera-snapshots)
+- Each camera keeps one small JPEG of the last frame it played. PixelCopy grabs it from the live SurfaceView at up to 640 px wide, JPEG quality 70 (about 30 KB), stored in app-private files/snapshots as hex(cameraId).jpg through FileSnapshotStore; nothing is exported to the gallery and no new dependencies were added.
+- Capture points in Media3PlayerSlot: 2 s after the stream reaches Playing, every 60 s while playing, on ON_STOP and when the player slot is disposed. The dispose grab can lose the race with the surface being destroyed, so the periodic grab is the reliable one. Frames that are all near-black are discarded so a bad grab never overwrites a good snapshot.
+- Multiview tiles use the same slot, so they also record snapshots (from the Sub stream), which can replace a Main stream snapshot taken in the live view.
+- Display: camera list tiles show the snapshot with a Last seen chip (just now, then relative minutes, hours, days); offline tiles show it dimmed behind the offline notice; the live view and multiview tiles show it with the chip while connecting or reconnecting and fade it out once playing; VideoPlaceholder shows it too. Without a snapshot the old placeholder and the old lastFrameAt chip stay.
+- Deleting a camera deletes its snapshot (SnapshotPruningRepository wraps the repository in AppContainer). Editing a camera's URL does not clear its snapshot.
+- Verified on the rtsp-test emulator with Aaron's camera: no snapshot before first play, snapshot appears after the first frames, survives a force-stop and relaunch, removed on delete. Build, 114 unit tests and lint (0 errors) pass.
 ## Backburner
 - ONVIF discovery and profile import (WS-Discovery, GetProfiles, GetStreamUri, Discover button in the add-camera form). Was chunk 8.
 - ONVIF PTZ (ContinuousMove, Stop, presets, on-screen joystick and zoom). Was chunk 9.

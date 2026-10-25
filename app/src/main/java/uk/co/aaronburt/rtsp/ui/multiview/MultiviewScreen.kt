@@ -47,7 +47,9 @@ import uk.co.aaronburt.rtsp.player.StreamQuality
 import uk.co.aaronburt.rtsp.ui.cameras.CamerasViewModel
 import uk.co.aaronburt.rtsp.ui.components.ImmersiveEffect
 import uk.co.aaronburt.rtsp.ui.components.LandscapeLockEffect
+import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
 import uk.co.aaronburt.rtsp.ui.components.rememberClock
+import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
 import uk.co.aaronburt.rtsp.ui.live.PlayerSlot
 import uk.co.aaronburt.rtsp.ui.theme.Danger
 import uk.co.aaronburt.rtsp.ui.theme.DangerContainer
@@ -121,6 +123,7 @@ private fun MultiviewTile(
     onRetry: () -> Unit,
 ) {
     val openLabel = stringResource(R.string.multiview_open, camera.name)
+    val snapshot = rememberSnapshot(camera.id)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -143,6 +146,9 @@ private fun MultiviewTile(
                     .border(1.5.dp, Danger),
                 contentAlignment = Alignment.Center,
             ) {
+                if (snapshot != null) {
+                    SnapshotImage(snapshot, Modifier.matchParentSize(), alpha = 0.35f)
+                }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp),
