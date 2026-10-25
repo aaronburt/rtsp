@@ -23,6 +23,7 @@ import uk.co.aaronburt.rtsp.update.UpdateSettingsSection
 fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifier) {
     val showClock by preferences.showClock.collectAsStateWithLifecycle()
     val allowRecording by preferences.allowRecording.collectAsStateWithLifecycle()
+    val pinchToZoom by preferences.pinchToZoom.collectAsStateWithLifecycle()
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -40,6 +41,12 @@ fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifie
             )
         }
         SettingsSection(title = stringResource(R.string.settings_live_title)) {
+            SwitchRow(
+                title = stringResource(R.string.settings_pinch_to_zoom_title),
+                subtitle = stringResource(R.string.settings_pinch_to_zoom_subtitle),
+                checked = pinchToZoom,
+                onCheckedChange = preferences::setPinchToZoom,
+            )
             SwitchRow(
                 title = stringResource(R.string.settings_show_clock_title),
                 subtitle = stringResource(R.string.settings_show_clock_subtitle),
