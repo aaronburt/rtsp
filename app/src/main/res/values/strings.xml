@@ -7,7 +7,6 @@
     <string name="nav_recordings">Recordings</string>
     <string name="nav_settings">Settings</string>
     <string name="recordings_placeholder">Recordings and snapshots will appear here.</string>
-    <string name="settings_placeholder">Playback and status settings will appear here.</string>
 
     <string name="cameras_title">Cameras</string>
     <string name="cameras_online">%1$d online</string>

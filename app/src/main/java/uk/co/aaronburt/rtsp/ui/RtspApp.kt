@@ -36,6 +36,8 @@ import uk.co.aaronburt.rtsp.ui.live.LiveViewModel
 import uk.co.aaronburt.rtsp.ui.live.PlaceholderPlayerSlot
 import uk.co.aaronburt.rtsp.ui.live.PlayerSlot
 import uk.co.aaronburt.rtsp.ui.multiview.MultiviewScreen
+import uk.co.aaronburt.rtsp.ui.settings.SettingsScreen
+import uk.co.aaronburt.rtsp.update.UpdatePrompt
 
 object Routes {
     const val Cameras = "cameras"
@@ -72,6 +74,8 @@ fun RtspApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
     val showBar = destination?.route in barRoutes
+
+    UpdatePrompt()
 
     Scaffold(
         modifier = modifier,
@@ -137,10 +141,7 @@ fun RtspApp(
                 )
             }
             composable(Routes.Settings) {
-                PlaceholderScreen(
-                    title = stringResource(R.string.nav_settings),
-                    message = stringResource(R.string.settings_placeholder),
-                )
+                SettingsScreen()
             }
             composable(
                 route = Routes.Live,

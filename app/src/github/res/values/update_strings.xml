@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_section_title">App updates</string>
+    <string name="update_installed_version">Installed version %1$s</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_checking">Checking GitHub for a newer release…</string>
+    <string name="update_up_to_date">You are up to date. Checked %1$s.</string>
+    <string name="update_available">Version %1$s is available.</string>
+    <string name="update_available_title">Update %1$s available</string>
+    <string name="update_whats_new">What\'s new</string>
+    <string name="update_download">Download</string>
+    <string name="update_downloading">Downloading %1$s…</string>
+    <string name="update_ready">%1$s is downloaded and its signature matches this app.</string>
+    <string name="update_permission_needed">Allow installs from this app in the system settings that just opened, then come back and tap Install again.</string>
+    <string name="update_install">Install</string>
+    <string name="update_installing">Waiting for the system installer…</string>
+    <string name="update_retry">Try again</string>
+    <string name="update_later">Later</string>
+</resources>
