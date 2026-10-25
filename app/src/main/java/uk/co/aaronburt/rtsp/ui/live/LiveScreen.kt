@@ -51,8 +51,10 @@ import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.data.Transport
 import uk.co.aaronburt.rtsp.data.displayUrl
 import uk.co.aaronburt.rtsp.player.StreamQuality
+import uk.co.aaronburt.rtsp.player.StreamStatus
 import uk.co.aaronburt.rtsp.ui.components.ImmersiveEffect
 import uk.co.aaronburt.rtsp.ui.components.SegmentedToggle
+import uk.co.aaronburt.rtsp.ui.components.StatusDot
 import uk.co.aaronburt.rtsp.ui.components.formatElapsed
 import uk.co.aaronburt.rtsp.ui.components.rememberClock
 import uk.co.aaronburt.rtsp.ui.theme.Amber
@@ -63,7 +65,6 @@ import uk.co.aaronburt.rtsp.ui.theme.RecordBadge
 import uk.co.aaronburt.rtsp.ui.theme.RecordingContainer
 import uk.co.aaronburt.rtsp.ui.theme.RecordingText
 import uk.co.aaronburt.rtsp.ui.theme.Scrim
-import uk.co.aaronburt.rtsp.ui.theme.Success
 
 @Composable
 fun LiveScreen(
@@ -71,6 +72,8 @@ fun LiveScreen(
     playerSlot: PlayerSlot,
     onBack: () -> Unit,
     onEdit: (String) -> Unit,
+    showClock: Boolean,
+    allowRecording: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -92,9 +95,11 @@ fun LiveScreen(
     ImmersiveEffect(enabled = fullscreen)
     BackHandler(enabled = userFullscreen) { userFullscreen = false }
     val clock = rememberClock()
+    val statusState = remember(camera.id) { mutableStateOf(StreamStatus.Pending) }
+    val status by statusState
     val player = remember(camera.id) {
         movableContentOf { current: Camera, quality: StreamQuality, muted: Boolean, videoModifier: Modifier ->
-            playerSlot(current, quality, muted, videoModifier)
+            playerSlot(current, quality, muted, videoModifier) { statusState.value = it }
         }
     }
 
@@ -104,6 +109,8 @@ fun LiveScreen(
             VideoOverlays(
                 state = state,
                 clock = clock,
+                showClock = showClock,
+                status = status,
                 fullscreen = true,
                 onFullscreen = { userFullscreen = false },
                 onBack = onBack,
@@ -125,6 +132,8 @@ fun LiveScreen(
             VideoOverlays(
                 state = state,
                 clock = clock,
+                showClock = showClock,
+                status = status,
                 fullscreen = false,
                 onFullscreen = { userFullscreen = true },
                 onBack = onBack,
@@ -139,11 +148,13 @@ fun LiveScreen(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            RecordButton(
-                recording = state.recording,
-                seconds = state.recordingSeconds,
-                onClick = viewModel::toggleRecording,
-            )
+            if (allowRecording || state.recording) {
+                RecordButton(
+                    recording = state.recording,
+                    seconds = state.recordingSeconds,
+                    onClick = viewModel::toggleRecording,
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionButton(
                     icon = R.drawable.ic_photo_camera,
@@ -222,6 +233,8 @@ private fun LiveHeader(
 private fun VideoOverlays(
     state: LiveState,
     clock: String,
+    showClock: Boolean,
+    status: StreamStatus,
     fullscreen: Boolean,
     onFullscreen: () -> Unit,
     onBack: () -> Unit,
@@ -256,17 +269,21 @@ private fun VideoOverlays(
                 modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
             )
         }
-        Text(
-            text = clock,
-            style = MonoSmall,
-            color = Color.White,
+        Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(10.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Scrim)
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-        )
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            StatusDot(status = status)
+            if (showClock) {
+                Text(text = clock, style = MonoSmall, color = Color.White)
+            }
+        }
         OverlayButton(
             icon = if (fullscreen) R.drawable.ic_fullscreen_exit else R.drawable.ic_fullscreen,
             description = stringResource(if (fullscreen) R.string.exit_fullscreen else R.string.fullscreen),
@@ -305,17 +322,6 @@ private fun StatsRow(state: LiveState, onToggleDetails: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(7.dp)
-                    .clip(CircleShape)
-                    .background(if (camera.online) Success else Danger),
-            )
-            Text(
-                text = stringResource(R.string.buffer_ms, camera.latencyMs),
-                style = MonoSmall,
-                color = if (camera.online) Success else Danger,
-            )
             Text(
                 text = stringResource(
                     if (state.quality == StreamQuality.Main) R.string.stream_main_short else R.string.stream_sub_short,

@@ -19,6 +19,7 @@ val RecordingContainer = Color(0xFF2A1617)
 val RecordingText = Color(0xFFFF9A92)
 val RecordBadge = Color(0xFFD93A30)
 val Success = Color(0xFF3DD68C)
+val StatusPending = Color(0xFFFF9500)
 val Scrim = Color(0x99000000)
 
 private val Ink = Color(0xFF0E1012)

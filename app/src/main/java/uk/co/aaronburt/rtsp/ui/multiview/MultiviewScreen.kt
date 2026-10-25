@@ -25,6 +25,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -44,10 +46,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.player.StreamQuality
+import uk.co.aaronburt.rtsp.player.StreamStatus
 import uk.co.aaronburt.rtsp.ui.cameras.CamerasViewModel
 import uk.co.aaronburt.rtsp.ui.components.ImmersiveEffect
 import uk.co.aaronburt.rtsp.ui.components.LandscapeLockEffect
 import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
+import uk.co.aaronburt.rtsp.ui.components.StatusDot
 import uk.co.aaronburt.rtsp.ui.components.rememberClock
 import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
 import uk.co.aaronburt.rtsp.ui.live.PlayerSlot
@@ -71,6 +75,7 @@ fun MultiviewScreen(
     playerSlot: PlayerSlot,
     onOpenCamera: (String) -> Unit,
     onExit: () -> Unit,
+    showClock: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -108,6 +113,7 @@ fun MultiviewScreen(
         }
         ControlRail(
             clock = clock,
+            showClock = showClock,
             layout = layout,
             onLayout = { layoutIndex = it.ordinal },
             onExit = onExit,
@@ -124,6 +130,8 @@ private fun MultiviewTile(
 ) {
     val openLabel = stringResource(R.string.multiview_open, camera.name)
     val snapshot = rememberSnapshot(camera.id)
+    var playerStatus by remember(camera.id) { mutableStateOf(StreamStatus.Pending) }
+    val status = if (camera.online) playerStatus else StreamStatus.Error
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -137,7 +145,7 @@ private fun MultiviewTile(
             .semantics(mergeDescendants = true) { contentDescription = camera.name },
     ) {
         if (camera.online) {
-            playerSlot(camera, StreamQuality.Sub, true, Modifier.fillMaxSize())
+            playerSlot(camera, StreamQuality.Sub, true, Modifier.fillMaxSize()) { playerStatus = it }
         } else {
             Box(
                 modifier = Modifier
@@ -186,24 +194,31 @@ private fun MultiviewTile(
                 }
             }
         }
-        Text(
-            text = camera.name,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White,
+        Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(8.dp)
                 .clip(RoundedCornerShape(7.dp))
                 .background(Scrim)
                 .padding(horizontal = 8.dp, vertical = 4.dp),
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            StatusDot(status = status, size = 8.dp)
+            Text(
+                text = camera.name,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+            )
+        }
     }
 }
 
 @Composable
 private fun ControlRail(
     clock: String,
+    showClock: Boolean,
     layout: GridLayout,
     onLayout: (GridLayout) -> Unit,
     onExit: () -> Unit,
@@ -224,7 +239,9 @@ private fun ControlRail(
                     contentDescription = stringResource(R.string.multiview_exit),
                 )
             }
-            Text(text = clock, style = MonoTiny.copy(fontSize = 11.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (showClock) {
+                Text(text = clock, style = MonoTiny.copy(fontSize = 11.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         Surface(
             shape = RoundedCornerShape(14.dp),

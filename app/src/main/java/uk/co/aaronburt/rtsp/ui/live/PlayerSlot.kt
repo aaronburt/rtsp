@@ -10,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,13 +20,23 @@ import kotlin.math.absoluteValue
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.player.StreamQuality
+import uk.co.aaronburt.rtsp.player.StreamStatus
 import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
 import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
 import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
 
-typealias PlayerSlot = @Composable (camera: Camera, quality: StreamQuality, muted: Boolean, modifier: Modifier) -> Unit
+typealias PlayerSlot = @Composable (
+    camera: Camera,
+    quality: StreamQuality,
+    muted: Boolean,
+    modifier: Modifier,
+    onStatus: (StreamStatus) -> Unit,
+) -> Unit
 
-val PlaceholderPlayerSlot: PlayerSlot = { camera, _, _, modifier ->
+val PlaceholderPlayerSlot: PlayerSlot = { camera, _, _, modifier, onStatus ->
+    LaunchedEffect(camera.online) {
+        onStatus(if (camera.online) StreamStatus.Live else StreamStatus.Error)
+    }
     VideoPlaceholder(camera, modifier)
 }
 

@@ -9,6 +9,7 @@ import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.data.PersistentCameraRepository
 import uk.co.aaronburt.rtsp.snapshot.FileSnapshotStore
 import uk.co.aaronburt.rtsp.storage.createSavedCameraRepository
+import uk.co.aaronburt.rtsp.ui.settings.SharedDisplayPreferences
 import uk.co.aaronburt.rtsp.update.Updater
 
 class RtspApplication : Application() {
@@ -23,6 +24,7 @@ class RtspApplication : Application() {
                 scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
             ),
             snapshotStore = FileSnapshotStore(File(filesDir, "snapshots")),
+            displayPreferences = SharedDisplayPreferences.create(this),
         )
         Updater.start(this)
     }
