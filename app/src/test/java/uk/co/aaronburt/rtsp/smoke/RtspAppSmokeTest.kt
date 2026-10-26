@@ -4,7 +4,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -29,7 +31,10 @@ class RtspAppSmokeTest {
 
     private fun assertShown(text: String) {
         compose.waitForIdle()
-        assertTrue("expected '$text' on screen", compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty())
+        assertTrue(
+            "expected '$text' on screen:\n${compose.onRoot().printToString()}",
+            compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty(),
+        )
     }
 
     @Test
