@@ -55,6 +55,7 @@
     <string name="transport_auto">Auto</string>
     <string name="transport_tcp">TCP</string>
     <string name="transport_udp">UDP</string>
+    <string name="transport_udp_fallback">UDP, may fall back to TCP</string>
     <string name="field_latency">Latency buffer</string>
     <string name="field_latency_hint">Lower is closer to live. Higher rides out Wi-Fi drops.</string>
     <string name="latency_ms">%1$d ms</string>
