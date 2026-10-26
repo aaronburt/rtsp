@@ -48,6 +48,7 @@ import uk.co.aaronburt.rtsp.player.withCredentials
 import uk.co.aaronburt.rtsp.snapshot.SurfaceCapture
 import uk.co.aaronburt.rtsp.ui.PlayerSurface
 import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
+import uk.co.aaronburt.rtsp.ui.components.LocalRecordingController
 import uk.co.aaronburt.rtsp.ui.components.LocalSnapshotRecorder
 import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
 import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
@@ -70,9 +71,14 @@ private fun Media3Player(
 ) {
     val context = LocalContext.current
     val scope = remember(camera.id) { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
+    val recording = LocalRecordingController.current
     val controller = remember(scope) {
         val attempts = if (camera.autoReconnect) RECONNECT_ATTEMPTS else 0
-        LiveStreamController(Media3Engine(context), scope, ReconnectPolicy(maxAttempts = attempts))
+        LiveStreamController(
+            Media3Engine(context, recording.tapFor(camera.id)),
+            scope,
+            ReconnectPolicy(maxAttempts = attempts),
+        )
     }
     val recorder = LocalSnapshotRecorder.current
     val capture = remember(camera.id) { SurfaceCapture() }

@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import uk.co.aaronburt.rtsp.ui.RtspApp
+import uk.co.aaronburt.rtsp.ui.components.LocalRecordingController
 import uk.co.aaronburt.rtsp.ui.components.LocalSnapshotRecorder
 import uk.co.aaronburt.rtsp.ui.components.LocalSnapshotStore
 import uk.co.aaronburt.rtsp.ui.live.Media3PlayerSlot
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalSnapshotStore provides container.snapshotStore,
                     LocalSnapshotRecorder provides container.snapshotRecorder,
+                    LocalRecordingController provides container.recordingController,
                 ) {
                     RtspApp(container = container, playerSlot = Media3PlayerSlot)
                 }

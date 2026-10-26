@@ -3,6 +3,10 @@ package uk.co.aaronburt.rtsp.data
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import uk.co.aaronburt.rtsp.recording.NoRecordingController
+import uk.co.aaronburt.rtsp.recording.NoRecordingStore
+import uk.co.aaronburt.rtsp.recording.RecordingController
+import uk.co.aaronburt.rtsp.recording.RecordingStore
 import uk.co.aaronburt.rtsp.snapshot.NoSnapshotStore
 import uk.co.aaronburt.rtsp.snapshot.SnapshotPruningRepository
 import uk.co.aaronburt.rtsp.snapshot.SnapshotRecorder
@@ -15,6 +19,8 @@ class AppContainer(
     repository: CameraRepository = FakeCameraRepository(),
     val snapshotStore: SnapshotStore = NoSnapshotStore,
     val displayPreferences: DisplayPreferences = InMemoryDisplayPreferences(),
+    val recordingStore: RecordingStore = NoRecordingStore,
+    val recordingController: RecordingController = NoRecordingController,
 ) {
     val cameraRepository: CameraRepository = SnapshotPruningRepository(repository, snapshotStore)
 

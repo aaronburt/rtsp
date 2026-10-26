@@ -31,7 +31,6 @@ import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.ui.cameras.CamerasScreen
 import uk.co.aaronburt.rtsp.ui.cameras.CamerasViewModel
-import uk.co.aaronburt.rtsp.ui.components.PlaceholderScreen
 import uk.co.aaronburt.rtsp.ui.form.CameraFormScreen
 import uk.co.aaronburt.rtsp.ui.form.CameraFormViewModel
 import uk.co.aaronburt.rtsp.ui.live.LiveScreen
@@ -39,6 +38,8 @@ import uk.co.aaronburt.rtsp.ui.live.LiveViewModel
 import uk.co.aaronburt.rtsp.ui.live.PlaceholderPlayerSlot
 import uk.co.aaronburt.rtsp.ui.live.PlayerSlot
 import uk.co.aaronburt.rtsp.ui.multiview.MultiviewScreen
+import uk.co.aaronburt.rtsp.ui.recordings.RecordingsScreen
+import uk.co.aaronburt.rtsp.ui.recordings.RecordingsViewModel
 import uk.co.aaronburt.rtsp.ui.settings.SettingsScreen
 import uk.co.aaronburt.rtsp.update.UpdatePrompt
 
@@ -148,10 +149,7 @@ fun RtspApp(
                 )
             }
             composable(Routes.Recordings) {
-                PlaceholderScreen(
-                    title = stringResource(R.string.nav_recordings),
-                    message = stringResource(R.string.recordings_placeholder),
-                )
+                RecordingsScreen(viewModel = viewModel(factory = RecordingsViewModel.factory(container)))
             }
             composable(Routes.Settings) {
                 SettingsScreen(preferences = container.displayPreferences)
