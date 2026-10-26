@@ -52,6 +52,7 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(text = stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium)
+        AppIconSection()
         CameraBackupSection(repository = cameraRepository)
         SettingsSection(title = stringResource(R.string.settings_previews_title)) {
             SwitchRow(
