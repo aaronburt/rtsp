@@ -58,7 +58,7 @@ class RtspAppSmokeTest {
     fun recordingsTabAppearsWhenRecordingIsAllowed() {
         launch(InMemoryDisplayPreferences(initialAllowRecording = true))
         compose.onNodeWithText("Recordings").performClick()
-        assertShown("Recordings and snapshots will appear here.")
+        assertShown("No recordings yet. Press Record on a live view to save one.")
     }
 
     @Test
