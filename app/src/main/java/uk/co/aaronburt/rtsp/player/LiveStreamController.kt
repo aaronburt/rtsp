@@ -30,6 +30,10 @@ class LiveStreamController(
     private val _details = MutableStateFlow(StreamDetails())
     val details: StateFlow<StreamDetails> = _details.asStateFlow()
     private var lastPresentationTimeUs: Long? = null
+    private val _videoFrameAvailable = MutableStateFlow(false)
+    val videoFrameAvailable: StateFlow<Boolean> = _videoFrameAvailable.asStateFlow()
+    var captureGeneration: Long = 0
+        private set
 
     private var requested: StreamConfig? = null
     private var attempt = 0
@@ -86,6 +90,8 @@ class LiveStreamController(
     fun pause() {
         if (released || _active.value == null) return
         suspended = true
+        captureGeneration++
+        _videoFrameAvailable.value = false
         cancelTimers()
         engine.stop()
         _frameSize.value = null
@@ -102,6 +108,8 @@ class LiveStreamController(
     fun release() {
         if (released) return
         released = true
+        captureGeneration++
+        _videoFrameAvailable.value = false
         cancelTimers()
         engine.setListener(null)
         engine.release()
@@ -109,6 +117,10 @@ class LiveStreamController(
     }
 
     fun setSurface(surface: Surface?) {
+        if (this.surface !== surface) {
+            captureGeneration++
+            _videoFrameAvailable.value = false
+        }
         this.surface = surface
         engine.setSurface(surface)
     }
@@ -119,12 +131,12 @@ class LiveStreamController(
 
     fun clearSurface(surface: Surface) {
         if (this.surface !== surface) return
-        this.surface = null
-        engine.setSurface(null)
+        setSurface(null)
     }
 
     override fun onBuffering() {
         if (!accepting()) return
+        _videoFrameAvailable.value = false
         _state.value = StreamState.Buffering
         armStall()
     }
@@ -139,6 +151,7 @@ class LiveStreamController(
     override fun onVideoFrame(presentationTimeUs: Long) {
         if (!accepting() || lastPresentationTimeUs == presentationTimeUs) return
         lastPresentationTimeUs = presentationTimeUs
+        _videoFrameAvailable.value = true
         stallJob?.cancel()
         stallJob = null
         armStall()
@@ -182,6 +195,8 @@ class LiveStreamController(
 
     private fun connect() {
         val current = _active.value ?: return
+        captureGeneration++
+        _videoFrameAvailable.value = false
         cancelTimers()
         _frameSize.value = null
         _details.value = StreamDetails()
@@ -204,6 +219,8 @@ class LiveStreamController(
     }
 
     private fun handleFailure(reason: String) {
+        captureGeneration++
+        _videoFrameAvailable.value = false
         cancelTimers()
         engine.stop()
         attempt += 1

@@ -8,7 +8,9 @@ import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsSelected
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
@@ -26,6 +28,8 @@ import uk.co.aaronburt.rtsp.player.FrameSize
 import uk.co.aaronburt.rtsp.player.RtspTransport
 import uk.co.aaronburt.rtsp.player.StreamDetails
 import uk.co.aaronburt.rtsp.player.StreamStatus
+import uk.co.aaronburt.rtsp.data.Transport
+import uk.co.aaronburt.rtsp.ui.settings.InMemoryStreamDefaultsPreferences
 
 @RunWith(RobolectricTestRunner::class)
 class RtspAppSmokeTest {
@@ -117,5 +121,18 @@ class RtspAppSmokeTest {
         assertShown("H.264")
         assertShown("2000 kbps")
         assertShown("UDP") // The saved camera requests TCP; display the negotiated result.
+    }
+
+    @Test fun streamDefaultsSelectedInSettingsReachTheNextNewCameraForm() {
+        val defaults = InMemoryStreamDefaultsPreferences()
+        val container = AppContainer(streamDefaults = defaults)
+        compose.setContent { RtspTheme { RtspApp(container) } }
+        compose.onNodeWithText("Settings").performClick()
+        compose.onNodeWithText("UDP").performScrollTo().performClick()
+        compose.waitForIdle()
+        assertEquals(Transport.Udp, defaults.defaults.value.transport)
+        compose.onNodeWithText("Cameras").performClick()
+        compose.onNodeWithContentDescription("Add camera").performClick()
+        compose.onNodeWithText("UDP").performScrollTo().assertIsSelected()
     }
 }

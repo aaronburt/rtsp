@@ -15,6 +15,7 @@ import uk.co.aaronburt.rtsp.recording.StreamRecorder
 import uk.co.aaronburt.rtsp.snapshot.FileSnapshotStore
 import uk.co.aaronburt.rtsp.storage.createSavedCameraRepository
 import uk.co.aaronburt.rtsp.ui.settings.SharedDisplayPreferences
+import uk.co.aaronburt.rtsp.ui.settings.SharedStreamDefaultsPreferences
 import uk.co.aaronburt.rtsp.update.Updater
 
 class RtspApplication : Application() {
@@ -42,6 +43,7 @@ class RtspApplication : Application() {
             recordingStore = recordingStore,
             recordingController = StreamRecorder(recordingStore),
             connectionTester = connectionTester,
+            streamDefaults = SharedStreamDefaultsPreferences.create(this),
         )
         Updater.start(this)
     }

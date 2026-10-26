@@ -1,6 +1,7 @@
 package uk.co.aaronburt.rtsp.ui.live
 
 import android.content.res.Configuration
+import android.graphics.Rect
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -25,11 +26,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -55,6 +61,8 @@ import uk.co.aaronburt.rtsp.player.StreamStatus
 import uk.co.aaronburt.rtsp.player.StreamDetails
 import uk.co.aaronburt.rtsp.player.RtspTransport
 import java.util.Locale
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 import uk.co.aaronburt.rtsp.ui.components.ImmersiveEffect
 import uk.co.aaronburt.rtsp.ui.components.LandscapeLockEffect
 import uk.co.aaronburt.rtsp.ui.components.SegmentedToggle
@@ -94,17 +102,35 @@ fun LiveScreen(
     }
 
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val pictureInPicture = LocalPictureInPicture.current
+    val pipState by pictureInPicture.state.collectAsStateWithLifecycle()
+    val videoOnly by rememberUpdatedState(pipState.videoOnly)
     var fullscreenOverride by rememberSaveable(camera.id) { mutableStateOf<Boolean?>(null) }
-    val fullscreen = fullscreenOverride ?: landscape
+    val fullscreen = pipState.videoOnly || (fullscreenOverride ?: landscape)
     if (fullscreenOverride == true) LandscapeLockEffect()
-    ImmersiveEffect(enabled = fullscreen)
-    BackHandler(enabled = fullscreenOverride == true) { fullscreenOverride = false }
+    ImmersiveEffect(enabled = fullscreen && !pipState.videoOnly)
+    BackHandler(enabled = fullscreenOverride == true && !pipState.videoOnly) { fullscreenOverride = false }
     val clock = rememberClock()
     val playerInfo = remember(camera.id) { mutableStateOf(PlayerInfo()) }
     val status = playerInfo.value.status
+    val snapshot = rememberSnapshotAction(camera.id, playerInfo.value.snapshotSource)
+    val scope = rememberCoroutineScope()
+    var videoBounds by remember(camera.id) { mutableStateOf<Rect?>(null) }
+    val trackBounds = Modifier.onGloballyPositioned {
+        val bounds = it.boundsInWindow()
+        videoBounds = Rect(bounds.left.roundToInt(), bounds.top.roundToInt(), bounds.right.roundToInt(), bounds.bottom.roundToInt())
+    }
+    val pipFailure = stringResource(R.string.pip_unavailable)
+    val pipEnabled = pictureInPicture.supported && playerInfo.value.snapshotSource != null
+    val enterPip = {
+        if (!pictureInPicture.enter(playerInfo.value.details.frameSize?.aspectRatio ?: (16f / 9f), videoBounds)) {
+            scope.launch { snapshot.messages.showSnackbar(pipFailure) }
+        }
+        Unit
+    }
     val player = remember(camera.id) {
         movableContentOf { current: Camera, quality: StreamQuality, muted: Boolean, zoomEnabled: Boolean ->
-            ZoomableVideo(enabled = zoomEnabled) {
+            ZoomableVideo(enabled = zoomEnabled, controlsVisible = !videoOnly) {
                 playerSlot(current, quality, muted, Modifier.fillMaxSize()) {
                     playerInfo.value = it
                     viewModel.reportConnection(it.status)
@@ -114,91 +140,109 @@ fun LiveScreen(
     }
 
     if (fullscreen) {
-        Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
+        Box(modifier = modifier.fillMaxSize().background(Color.Black).then(trackBounds)) {
             player(camera, state.quality, state.muted, pinchToZoom)
-            VideoOverlays(
-                state = state,
-                clock = clock,
-                showClock = showClock,
-                status = status,
-                fullscreen = true,
-                onFullscreen = { fullscreenOverride = false },
-                onBack = onBack,
-                modifier = Modifier.fillMaxSize(),
-            )
+            if (!pipState.videoOnly) {
+                VideoOverlays(
+                    clock = clock,
+                    showClock = showClock,
+                    status = status,
+                    fullscreen = true,
+                    onFullscreen = { fullscreenOverride = false },
+                    onBack = onBack,
+                    onSnapshot = snapshot.capture,
+                    snapshotEnabled = snapshot.enabled,
+                    onPictureInPicture = enterPip,
+                    showPictureInPicture = pictureInPicture.supported,
+                    pictureInPictureEnabled = pipEnabled,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                SnackbarHost(snapshot.messages, Modifier.align(Alignment.BottomCenter).padding(bottom = 60.dp))
+            }
         }
         return
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        LiveHeader(
-            camera = camera,
-            onBack = onBack,
-            onToggleFavourite = viewModel::toggleFavourite,
-            onEdit = { onEdit(camera.id) },
-        )
-        Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black)) {
-            player(camera, state.quality, state.muted, pinchToZoom)
-            VideoOverlays(
-                state = state,
-                clock = clock,
-                showClock = showClock,
-                status = status,
-                fullscreen = false,
-                onFullscreen = { fullscreenOverride = true },
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            LiveHeader(
+                camera = camera,
                 onBack = onBack,
-                modifier = Modifier.fillMaxSize(),
+                onToggleFavourite = viewModel::toggleFavourite,
+                onEdit = { onEdit(camera.id) },
             )
-        }
-        StatsRow(state = state, status = status, details = playerInfo.value.details, onToggleDetails = viewModel::toggleDetails)
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            if (allowRecording || state.recording) {
-                RecordButton(
-                    recording = state.recording,
-                    seconds = state.recordingSeconds,
-                    onClick = viewModel::toggleRecording,
+            Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black).then(trackBounds)) {
+                player(camera, state.quality, state.muted, pinchToZoom)
+                VideoOverlays(
+                    clock = clock,
+                    showClock = showClock,
+                    status = status,
+                    fullscreen = false,
+                    onFullscreen = { fullscreenOverride = true },
+                    onBack = onBack,
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
-            state.recordingError?.let { message ->
-                Text(
-                    text = stringResource(R.string.recording_failed, message),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Danger,
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ActionButton(
-                    icon = R.drawable.ic_photo_camera,
-                    label = stringResource(R.string.action_snapshot),
-                    enabled = false,
-                    onClick = {},
-                    modifier = Modifier.weight(1f),
-                )
-                ActionButton(
-                    icon = if (state.muted) R.drawable.ic_volume_off else R.drawable.ic_volume_up,
-                    label = stringResource(if (state.muted) R.string.action_unmute else R.string.action_mute),
-                    enabled = true,
-                    onClick = viewModel::toggleMuted,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            SegmentedToggle(
-                options = StreamQuality.entries,
-                selected = state.quality,
-                label = {
-                    stringResource(
-                        if (it == StreamQuality.Main) R.string.stream_main else R.string.stream_sub,
+            StatsRow(state = state, status = status, details = playerInfo.value.details, onToggleDetails = viewModel::toggleDetails)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                if (allowRecording || state.recording) {
+                    RecordButton(
+                        recording = state.recording,
+                        seconds = state.recordingSeconds,
+                        onClick = viewModel::toggleRecording,
                     )
-                },
-                onSelect = viewModel::setQuality,
-            )
+                }
+                state.recordingError?.let { message ->
+                    Text(
+                        text = stringResource(R.string.recording_failed, message),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Danger,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ActionButton(
+                        icon = R.drawable.ic_photo_camera,
+                        label = stringResource(R.string.action_snapshot),
+                        enabled = snapshot.enabled,
+                        onClick = snapshot.capture,
+                        modifier = Modifier.weight(1f),
+                    )
+                    ActionButton(
+                        icon = if (state.muted) R.drawable.ic_volume_off else R.drawable.ic_volume_up,
+                        label = stringResource(if (state.muted) R.string.action_unmute else R.string.action_mute),
+                        enabled = true,
+                        onClick = viewModel::toggleMuted,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (pictureInPicture.supported) {
+                    ActionButton(
+                        icon = R.drawable.ic_picture_in_picture,
+                        label = stringResource(R.string.action_picture_in_picture),
+                        enabled = pipEnabled,
+                        onClick = enterPip,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                SegmentedToggle(
+                    options = StreamQuality.entries,
+                    selected = state.quality,
+                    label = {
+                        stringResource(
+                            if (it == StreamQuality.Main) R.string.stream_main else R.string.stream_sub,
+                        )
+                    },
+                    onSelect = viewModel::setQuality,
+                )
+            }
         }
+        SnackbarHost(snapshot.messages, Modifier.align(Alignment.BottomCenter))
     }
 }
 
@@ -248,13 +292,17 @@ private fun LiveHeader(
 
 @Composable
 private fun VideoOverlays(
-    state: LiveState,
     clock: String,
     showClock: Boolean,
     status: StreamStatus,
     fullscreen: Boolean,
     onFullscreen: () -> Unit,
     onBack: () -> Unit,
+    onSnapshot: () -> Unit = {},
+    snapshotEnabled: Boolean = false,
+    onPictureInPicture: () -> Unit = {},
+    showPictureInPicture: Boolean = false,
+    pictureInPictureEnabled: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -289,6 +337,16 @@ private fun VideoOverlays(
             onClick = onFullscreen,
             modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
         )
+        if (fullscreen) {
+            Row(modifier = Modifier.align(Alignment.BottomCenter).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OverlayButton(R.drawable.ic_photo_camera, stringResource(R.string.action_snapshot),
+                    onSnapshot, enabled = snapshotEnabled)
+                if (showPictureInPicture) {
+                    OverlayButton(R.drawable.ic_picture_in_picture, stringResource(R.string.action_picture_in_picture),
+                        onPictureInPicture, enabled = pictureInPictureEnabled)
+                }
+            }
+        }
     }
 }
 
@@ -298,15 +356,17 @@ private fun OverlayButton(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     IconButton(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.size(44.dp).clip(CircleShape).background(Scrim),
     ) {
         Icon(
             painter = painterResource(icon),
             contentDescription = description,
-            tint = Color.White,
+            tint = Color.White.copy(alpha = if (enabled) 1f else 0.38f),
             modifier = Modifier.size(22.dp),
         )
     }

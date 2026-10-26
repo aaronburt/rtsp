@@ -337,6 +337,27 @@ class LiveStreamControllerTest {
         assertEquals(false, engine.muted)
     }
 
+    @Test fun captureRequiresAVideoFrameFromTheCurrentUninterruptedSession() = runTest {
+        val engine = FakeEngine()
+        val controller = controller(engine)
+        controller.start(config)
+        engine.attached!!.onPlaying()
+        assertEquals(false, controller.videoFrameAvailable.value)
+        engine.attached!!.onVideoFrame(1_000)
+        assertTrue(controller.videoFrameAvailable.value)
+        val firstSession = controller.captureGeneration
+        controller.selectQuality(StreamQuality.Sub)
+        assertEquals(false, controller.videoFrameAvailable.value)
+        assertTrue(controller.captureGeneration > firstSession)
+        engine.attached!!.onPlaying()
+        engine.attached!!.onVideoFrame(2_000)
+        assertTrue(controller.videoFrameAvailable.value)
+        engine.attached!!.onError("offline")
+        assertEquals(false, controller.videoFrameAvailable.value)
+        controller.pause()
+        assertEquals(false, controller.videoFrameAvailable.value)
+    }
+
     @Test
     fun startWithQualityLoadsThatStreamAndChangesRestartOnce() = runTest {
         val engine = FakeEngine()

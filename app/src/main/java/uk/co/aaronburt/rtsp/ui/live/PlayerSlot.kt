@@ -25,8 +25,13 @@ import uk.co.aaronburt.rtsp.player.StreamDetails
 import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
 import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
 import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
+import uk.co.aaronburt.rtsp.snapshot.SnapshotSource
 
-data class PlayerInfo(val status: StreamStatus = StreamStatus.Pending, val details: StreamDetails = StreamDetails())
+data class PlayerInfo(
+    val status: StreamStatus = StreamStatus.Pending,
+    val details: StreamDetails = StreamDetails(),
+    val snapshotSource: SnapshotSource? = null,
+)
 
 typealias PlayerSlot = @Composable (
     camera: Camera,

@@ -90,7 +90,7 @@ internal class VideoZoomState(initial: VideoZoomTransform = VideoZoomTransform()
 internal val LocalVideoZoom = staticCompositionLocalOf<VideoZoomState?> { null }
 
 @Composable
-internal fun ZoomableVideo(enabled: Boolean, content: @Composable () -> Unit) {
+internal fun ZoomableVideo(enabled: Boolean, controlsVisible: Boolean = true, content: @Composable () -> Unit) {
     val zoom = rememberSaveable(enabled, saver = VideoZoomState.StateSaver) { VideoZoomState() }
     Box(
         modifier = Modifier.fillMaxSize().clipToBounds().then(
@@ -108,7 +108,7 @@ internal fun ZoomableVideo(enabled: Boolean, content: @Composable () -> Unit) {
         CompositionLocalProvider(LocalVideoZoom provides if (enabled) zoom else null) {
             content()
         }
-        if (enabled && zoom.transform.scale > 1f) {
+        if (enabled && controlsVisible && zoom.transform.scale > 1f) {
             Surface(
                 onClick = zoom::reset,
                 color = Scrim,

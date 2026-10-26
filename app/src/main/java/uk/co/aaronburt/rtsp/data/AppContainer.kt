@@ -16,6 +16,8 @@ import uk.co.aaronburt.rtsp.ui.settings.DisplayPreferences
 import uk.co.aaronburt.rtsp.ui.settings.InMemoryDisplayPreferences
 import uk.co.aaronburt.rtsp.player.CameraConnectionTester
 import uk.co.aaronburt.rtsp.player.NoConnectionTester
+import uk.co.aaronburt.rtsp.ui.settings.StreamDefaultsPreferences
+import uk.co.aaronburt.rtsp.ui.settings.InMemoryStreamDefaultsPreferences
 
 class AppContainer(
     repository: CameraRepository = FakeCameraRepository(),
@@ -24,6 +26,7 @@ class AppContainer(
     val recordingStore: RecordingStore = NoRecordingStore,
     val recordingController: RecordingController = NoRecordingController,
     val connectionTester: CameraConnectionTester = NoConnectionTester,
+    val streamDefaults: StreamDefaultsPreferences = InMemoryStreamDefaultsPreferences(),
 ) {
     val cameraRepository: CameraRepository = SnapshotPruningRepository(repository, snapshotStore)
 

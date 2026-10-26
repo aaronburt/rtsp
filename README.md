@@ -16,9 +16,9 @@
 </p>
 
 - **Camera list**: every camera with its last snapshot and a last-seen time.
-- **Live view**: one camera with a main and sub stream toggle, mute and fullscreen.
+- **Live view**: one camera with a main and sub stream toggle, mute, fullscreen, picture-in-picture and live snapshots.
 - **Multiview**: several cameras on screen at once.
-- **Settings**: playback options and update checks.
+- **Settings**: playback options, defaults for new camera streams and update checks.
 
 ## Features
 
@@ -31,6 +31,9 @@
 - Camera connection status with retry and periodic checks while the camera list is open
 - Stream details with resolution, frame rate, codec, video bitrate and negotiated TCP/UDP transport
 - Fullscreen live view rotates to landscape and restores the previous orientation on exit
+- Save and share a snapshot from the current live frame, including in fullscreen
+- Picture-in-picture for a single live camera, with the stream continuing while another app is open
+- Default transport, latency buffer and muted state for newly added cameras
 - Multiview grids of 1, 2x2 or 2x3 using sub streams to save bandwidth
 - Favourites, search and last-seen snapshots
 - No accounts and no cloud service
