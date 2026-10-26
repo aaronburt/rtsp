@@ -1,5 +1,6 @@
 package uk.co.aaronburt.rtsp.storage
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -7,8 +8,8 @@ import androidx.room.PrimaryKey
 data class CameraEntity(
     @PrimaryKey val id: String,
     val name: String,
-    val mainUrl: String,
-    val subUrl: String?,
+    @ColumnInfo(name = "mainUrl") val mainUrlCipher: String,
+    @ColumnInfo(name = "subUrl") val subUrlCipher: String?,
     val username: String,
     val passwordCipher: String?,
     val transport: String,
@@ -18,3 +19,7 @@ data class CameraEntity(
     val favourite: Boolean,
     val createdAt: Long,
 )
+
+internal fun mainUrlContext(cameraId: String): String = "$cameraId/main"
+
+internal fun subUrlContext(cameraId: String): String = "$cameraId/sub"
