@@ -5,6 +5,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -58,9 +59,9 @@ class RtspAppSmokeTest {
         val preferences = InMemoryDisplayPreferences()
         launch(preferences)
         compose.onNodeWithText("Settings").performClick()
-        compose.onNodeWithText("Pinch to zoom").performClick()
-        compose.onNodeWithText("Show clock on video").performClick()
-        compose.onNodeWithText("Allow recording").performClick()
+        compose.onNodeWithText("Pinch to zoom").performScrollTo().performClick()
+        compose.onNodeWithText("Show clock on video").performScrollTo().performClick()
+        compose.onNodeWithText("Allow recording").performScrollTo().performClick()
         compose.waitForIdle()
         assertTrue(preferences.pinchToZoom.value)
         assertTrue(preferences.showClock.value)
