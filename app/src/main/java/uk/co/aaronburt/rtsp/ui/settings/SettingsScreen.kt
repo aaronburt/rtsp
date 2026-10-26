@@ -25,13 +25,16 @@ import uk.co.aaronburt.rtsp.ui.components.SettingsSection
 import uk.co.aaronburt.rtsp.ui.components.SwitchRow
 import uk.co.aaronburt.rtsp.ui.components.SegmentedToggle
 import uk.co.aaronburt.rtsp.data.Transport
+import uk.co.aaronburt.rtsp.data.CameraRepository
 import kotlin.math.roundToInt
 import uk.co.aaronburt.rtsp.update.UpdateSettingsSection
+import uk.co.aaronburt.rtsp.sharing.CameraBackupSection
 
 @Composable
 fun SettingsScreen(
     preferences: DisplayPreferences,
     streamDefaults: StreamDefaultsPreferences,
+    cameraRepository: CameraRepository,
     modifier: Modifier = Modifier,
 ) {
     val showClock by preferences.showClock.collectAsStateWithLifecycle()
@@ -49,6 +52,7 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(text = stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium)
+        CameraBackupSection(repository = cameraRepository)
         SettingsSection(title = stringResource(R.string.settings_previews_title)) {
             SwitchRow(
                 title = stringResource(R.string.settings_refresh_previews_title),
