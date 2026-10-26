@@ -16,6 +16,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlin.math.roundToInt
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Transport
+import uk.co.aaronburt.rtsp.player.ConnectionResult
 import uk.co.aaronburt.rtsp.ui.components.SegmentedToggle
 import uk.co.aaronburt.rtsp.ui.components.SwitchRow
 import uk.co.aaronburt.rtsp.ui.theme.Danger
@@ -141,6 +144,27 @@ fun CameraFormScreen(
                 value = state.password,
                 onValueChange = viewModel::setPassword,
             )
+
+            OutlinedButton(
+                onClick = viewModel::testConnection,
+                enabled = !state.testing,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (state.testing) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp).padding(end = 4.dp), strokeWidth = 2.dp)
+                }
+                Text(stringResource(if (state.testing) R.string.connection_testing else R.string.test_connection))
+            }
+            state.connectionResult?.let { result ->
+                Text(
+                    text = when (result) {
+                        ConnectionResult.Available -> stringResource(R.string.connection_success)
+                        is ConnectionResult.Failed -> result.reason
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (result is ConnectionResult.Failed) Danger else MaterialTheme.colorScheme.primary,
+                )
+            }
 
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(

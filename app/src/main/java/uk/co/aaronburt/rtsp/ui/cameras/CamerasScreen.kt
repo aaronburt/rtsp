@@ -32,6 +32,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,8 +44,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
+import uk.co.aaronburt.rtsp.data.CameraConnectionStatus
+import uk.co.aaronburt.rtsp.player.StreamStatus
+import uk.co.aaronburt.rtsp.ui.components.StatusDot
 import uk.co.aaronburt.rtsp.ui.live.cameraTint
 import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
 import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
@@ -69,6 +77,15 @@ fun CamerasScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(viewModel, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (true) {
+                viewModel.refresh()
+                delay(60_000)
+            }
+        }
+    }
     Column(modifier = modifier.fillMaxSize()) {
         CamerasHeader(
             state = state,
@@ -299,6 +316,35 @@ private fun CameraTile(
                         )
                     }
                 }
+                Row(
+                    modifier = Modifier.align(Alignment.TopStart).padding(6.dp)
+                        .clip(RoundedCornerShape(6.dp)).background(Scrim)
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    StatusDot(
+                        status = when (camera.connectionStatus) {
+                            CameraConnectionStatus.Online -> StreamStatus.Live
+                            CameraConnectionStatus.Offline -> StreamStatus.Error
+                            CameraConnectionStatus.Unknown, CameraConnectionStatus.Checking -> StreamStatus.Pending
+                        },
+                        size = 7.dp,
+                    )
+                    Text(
+                        text = stringResource(when (camera.connectionStatus) {
+                            CameraConnectionStatus.Online -> R.string.camera_online
+                            CameraConnectionStatus.Offline -> R.string.status_error
+                            CameraConnectionStatus.Checking -> R.string.connection_testing
+                            CameraConnectionStatus.Unknown -> R.string.connection_unknown
+                        }),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
+            camera.connectionError?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = DangerText,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
             }
             Row(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 34.dp).padding(start = 10.dp, end = 6.dp),

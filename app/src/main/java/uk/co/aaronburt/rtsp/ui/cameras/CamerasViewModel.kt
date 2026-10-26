@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.data.CameraRepository
+import uk.co.aaronburt.rtsp.player.StreamStatus
 
 enum class CameraFilter { All, Offline, Favourites }
 
@@ -87,6 +88,16 @@ class CamerasViewModel(private val repository: CameraRepository) : ViewModel() {
 
     fun retry(id: String) {
         repository.retry(id)
+    }
+
+    fun refresh() = repository.refresh()
+
+    fun reportConnection(id: String, status: StreamStatus) {
+        when (status) {
+            StreamStatus.Live -> repository.reportConnection(id, true)
+            StreamStatus.Error -> repository.reportConnection(id, false)
+            StreamStatus.Pending -> Unit
+        }
     }
 
     private fun buildState(

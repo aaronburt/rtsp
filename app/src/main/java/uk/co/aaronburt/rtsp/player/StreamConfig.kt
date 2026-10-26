@@ -1,5 +1,9 @@
 package uk.co.aaronburt.rtsp.player
 
+import uk.co.aaronburt.rtsp.data.Camera
+import uk.co.aaronburt.rtsp.data.Transport
+import uk.co.aaronburt.rtsp.data.splitCredentials
+
 const val DEFAULT_LATENCY_MS = 500
 
 enum class RtspTransport { TCP, UDP }
@@ -24,3 +28,15 @@ data class StreamConfig(
 data class ActiveStream(val config: StreamConfig, val quality: StreamQuality) {
     val url: String get() = config.urlFor(quality)
 }
+
+fun Camera.toStreamConfig(): StreamConfig = StreamConfig(
+    name = name,
+    mainUrl = withCredentials(splitCredentials(url).url, username, password),
+    subUrl = subUrl?.takeIf { it.isNotBlank() }
+        ?.let { withCredentials(splitCredentials(it).url, username, password) },
+    transport = when (transport) {
+        Transport.Udp -> RtspTransport.UDP
+        Transport.Tcp, Transport.Auto -> RtspTransport.TCP
+    },
+    latencyMs = latencyMs,
+)

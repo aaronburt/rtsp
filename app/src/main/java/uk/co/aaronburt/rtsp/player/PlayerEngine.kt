@@ -25,6 +25,8 @@ interface PlayerEngine {
         fun onBuffering()
         fun onPlaying()
         fun onFrameSize(size: FrameSize)
+        fun onVideoFrame(presentationTimeUs: Long) {}
+        fun onStreamDetails(details: StreamDetails) {}
         fun onError(reason: String)
         fun onEnded()
     }

@@ -107,4 +107,15 @@
     <string name="player_reconnecting">Reconnecting in %1$ds (attempt %2$d of %3$d)</string>
     <string name="player_failed">Could not connect</string>
     <string name="player_retry">Retry</string>
+    <string name="test_connection">Test connection</string>
+    <string name="connection_testing">Checking…</string>
+    <string name="connection_success">Connection successful</string>
+    <string name="connection_unknown">Not checked</string>
+    <string name="camera_online">Online</string>
+    <string name="detail_unknown">Not available</string>
+    <string name="detail_resolution">Resolution</string>
+    <string name="detail_frame_rate">Frame rate</string>
+    <string name="detail_codec">Codec</string>
+    <string name="detail_video_bitrate">Video bitrate</string>
+    <string name="detail_kbps">%1$d kbps</string>
 </resources>

@@ -21,6 +21,7 @@ import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.data.CameraRepository
 import uk.co.aaronburt.rtsp.player.StreamQuality
+import uk.co.aaronburt.rtsp.player.StreamStatus
 import uk.co.aaronburt.rtsp.recording.NoRecordingController
 import uk.co.aaronburt.rtsp.recording.RecordingController
 import uk.co.aaronburt.rtsp.recording.RecordingStatus
@@ -87,6 +88,14 @@ class LiveViewModel(
 
     fun setQuality(quality: StreamQuality) {
         mutableState.update { it.copy(quality = quality) }
+    }
+
+    fun reportConnection(status: StreamStatus) {
+        when (status) {
+            StreamStatus.Live -> repository.reportConnection(cameraId, true)
+            StreamStatus.Error -> repository.reportConnection(cameraId, false)
+            StreamStatus.Pending -> Unit
+        }
     }
 
     fun toggleMuted() {

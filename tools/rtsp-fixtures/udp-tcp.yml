@@ -1,0 +1,28 @@
+logLevel: info
+readTimeout: 30s
+writeTimeout: 30s
+rtsp: true
+rtspAddress: :18554
+rtspTransports: [udp, tcp]
+rtpAddress: :18556
+rtcpAddress: :18557
+rtspAuthMethods: [basic]
+rtmp: false
+hls: false
+webrtc: false
+srt: false
+authInternalUsers:
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: publish
+  - user: viewer
+    pass: streamtest
+    ips: []
+    permissions:
+      - action: read
+paths:
+  camera:
+  missing:
+moq: false

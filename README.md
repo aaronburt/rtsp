@@ -26,6 +26,11 @@
 - Passwords are encrypted on the device with the Android Keystore
 - TCP, UDP or automatic transport and adjustable latency
 - Automatic reconnect with backoff
+- Frozen-video detection based on advancing rendered frames
+- Test connections before saving, with authentication and stream-path errors
+- Camera connection status with retry and periodic checks while the camera list is open
+- Stream details with resolution, frame rate, codec, video bitrate and negotiated TCP/UDP transport
+- Fullscreen live view rotates to landscape and restores the previous orientation on exit
 - Multiview grids of 1, 2x2 or 2x3 using sub streams to save bandwidth
 - Favourites, search and last-seen snapshots
 - No accounts and no cloud service

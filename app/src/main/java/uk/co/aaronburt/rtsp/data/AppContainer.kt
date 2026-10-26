@@ -14,6 +14,8 @@ import uk.co.aaronburt.rtsp.snapshot.SnapshotStore
 import uk.co.aaronburt.rtsp.snapshot.StoreSnapshotRecorder
 import uk.co.aaronburt.rtsp.ui.settings.DisplayPreferences
 import uk.co.aaronburt.rtsp.ui.settings.InMemoryDisplayPreferences
+import uk.co.aaronburt.rtsp.player.CameraConnectionTester
+import uk.co.aaronburt.rtsp.player.NoConnectionTester
 
 class AppContainer(
     repository: CameraRepository = FakeCameraRepository(),
@@ -21,6 +23,7 @@ class AppContainer(
     val displayPreferences: DisplayPreferences = InMemoryDisplayPreferences(),
     val recordingStore: RecordingStore = NoRecordingStore,
     val recordingController: RecordingController = NoRecordingController,
+    val connectionTester: CameraConnectionTester = NoConnectionTester,
 ) {
     val cameraRepository: CameraRepository = SnapshotPruningRepository(repository, snapshotStore)
 

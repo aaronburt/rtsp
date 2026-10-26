@@ -3,18 +3,25 @@ package uk.co.aaronburt.rtsp.ui.form
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.data.CameraRepository
 import uk.co.aaronburt.rtsp.data.Transport
 import uk.co.aaronburt.rtsp.data.splitCredentials
 import uk.co.aaronburt.rtsp.player.isRtspUrl
+import uk.co.aaronburt.rtsp.player.CameraConnectionTester
+import uk.co.aaronburt.rtsp.player.ConnectionResult
+import uk.co.aaronburt.rtsp.player.NoConnectionTester
 
 data class FormErrors(
     val nameMissing: Boolean = false,
@@ -48,6 +55,8 @@ data class FormState(
     val startMuted: Boolean = true,
     val errors: FormErrors = FormErrors(),
     val showErrors: Boolean = false,
+    val testing: Boolean = false,
+    val connectionResult: ConnectionResult? = null,
 ) {
     val isEdit: Boolean get() = editingId != null
 }
@@ -55,7 +64,9 @@ data class FormState(
 class CameraFormViewModel(
     private val editingId: String?,
     private val repository: CameraRepository,
+    private val connectionTester: CameraConnectionTester = NoConnectionTester,
 ) : ViewModel() {
+    private var testJob: Job? = null
     private val existing = editingId?.let(repository::get)
     private val mutableState = MutableStateFlow(
         existing?.let {
@@ -95,7 +106,34 @@ class CameraFormViewModel(
     fun setStartMuted(value: Boolean) = change { it.copy(startMuted = value) }
 
     fun normaliseUrl() {
-        mutableState.update { applyCredentials(it) }
+        val current = mutableState.value
+        val normalised = applyCredentials(current)
+        if (current != normalised) change { normalised }
+    }
+
+    fun testConnection() {
+        testJob?.cancel()
+        val current = applyCredentials(mutableState.value)
+        if (!isValidRtsp(current.url)) {
+            mutableState.value = current.copy(errors = current.errors.copy(urlInvalid = true), showErrors = true)
+            return
+        }
+        mutableState.value = current.copy(testing = true, connectionResult = null)
+        val camera = Camera(
+            id = editingId.orEmpty(), name = current.name, url = current.url,
+            username = current.username, password = current.password,
+            transport = current.transport, latencyMs = current.latencyMs,
+        )
+        testJob = viewModelScope.launch {
+            val result = try {
+                connectionTester.test(camera)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                ConnectionResult.Failed("Could not connect to the camera")
+            }
+            mutableState.update { it.copy(testing = false, connectionResult = result) }
+        }
     }
 
     fun save(): Boolean {
@@ -125,8 +163,9 @@ class CameraFormViewModel(
     }
 
     private fun change(transform: (FormState) -> FormState) {
+        testJob?.cancel()
         mutableState.update { current ->
-            val next = transform(current)
+            val next = transform(current).copy(testing = false, connectionResult = null)
             if (next.showErrors) next.copy(errors = validateForm(next.name, next.url, next.subUrl)) else next
         }
     }
@@ -146,7 +185,7 @@ class CameraFormViewModel(
         fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val handle: SavedStateHandle = createSavedStateHandle()
-                CameraFormViewModel(handle.get<String>(ARG_ID), container.cameraRepository)
+                CameraFormViewModel(handle.get<String>(ARG_ID), container.cameraRepository, container.connectionTester)
             }
         }
     }

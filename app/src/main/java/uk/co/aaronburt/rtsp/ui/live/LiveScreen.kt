@@ -49,11 +49,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
-import uk.co.aaronburt.rtsp.data.Transport
 import uk.co.aaronburt.rtsp.data.displayUrl
 import uk.co.aaronburt.rtsp.player.StreamQuality
 import uk.co.aaronburt.rtsp.player.StreamStatus
+import uk.co.aaronburt.rtsp.player.StreamDetails
+import uk.co.aaronburt.rtsp.player.RtspTransport
+import java.util.Locale
 import uk.co.aaronburt.rtsp.ui.components.ImmersiveEffect
+import uk.co.aaronburt.rtsp.ui.components.LandscapeLockEffect
 import uk.co.aaronburt.rtsp.ui.components.SegmentedToggle
 import uk.co.aaronburt.rtsp.ui.components.StatusDot
 import uk.co.aaronburt.rtsp.ui.components.formatElapsed
@@ -91,17 +94,21 @@ fun LiveScreen(
     }
 
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    var userFullscreen by rememberSaveable { mutableStateOf(false) }
-    val fullscreen = landscape || userFullscreen
+    var fullscreenOverride by rememberSaveable(camera.id) { mutableStateOf<Boolean?>(null) }
+    val fullscreen = fullscreenOverride ?: landscape
+    if (fullscreenOverride == true) LandscapeLockEffect()
     ImmersiveEffect(enabled = fullscreen)
-    BackHandler(enabled = userFullscreen) { userFullscreen = false }
+    BackHandler(enabled = fullscreenOverride == true) { fullscreenOverride = false }
     val clock = rememberClock()
-    val statusState = remember(camera.id) { mutableStateOf(StreamStatus.Pending) }
-    val status by statusState
+    val playerInfo = remember(camera.id) { mutableStateOf(PlayerInfo()) }
+    val status = playerInfo.value.status
     val player = remember(camera.id) {
         movableContentOf { current: Camera, quality: StreamQuality, muted: Boolean, zoomEnabled: Boolean ->
             ZoomableVideo(enabled = zoomEnabled) {
-                playerSlot(current, quality, muted, Modifier.fillMaxSize()) { statusState.value = it }
+                playerSlot(current, quality, muted, Modifier.fillMaxSize()) {
+                    playerInfo.value = it
+                    viewModel.reportConnection(it.status)
+                }
             }
         }
     }
@@ -115,7 +122,7 @@ fun LiveScreen(
                 showClock = showClock,
                 status = status,
                 fullscreen = true,
-                onFullscreen = { userFullscreen = false },
+                onFullscreen = { fullscreenOverride = false },
                 onBack = onBack,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -138,12 +145,12 @@ fun LiveScreen(
                 showClock = showClock,
                 status = status,
                 fullscreen = false,
-                onFullscreen = { userFullscreen = true },
+                onFullscreen = { fullscreenOverride = true },
                 onBack = onBack,
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        StatsRow(state = state, status = status, onToggleDetails = viewModel::toggleDetails)
+        StatsRow(state = state, status = status, details = playerInfo.value.details, onToggleDetails = viewModel::toggleDetails)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -306,7 +313,7 @@ private fun OverlayButton(
 }
 
 @Composable
-private fun StatsRow(state: LiveState, status: StreamStatus, onToggleDetails: () -> Unit) {
+private fun StatsRow(state: LiveState, status: StreamStatus, details: StreamDetails, onToggleDetails: () -> Unit) {
     val camera = state.camera ?: return
     Column {
         Row(
@@ -345,10 +352,26 @@ private fun StatsRow(state: LiveState, status: StreamStatus, onToggleDetails: ()
                 DetailLine(stringResource(R.string.detail_url), displayUrl(camera))
                 DetailLine(
                     stringResource(R.string.detail_transport),
-                    when (camera.transport) {
-                        Transport.Auto, Transport.Tcp -> stringResource(R.string.transport_tcp)
-                        Transport.Udp -> stringResource(R.string.transport_udp_fallback)
+                    when (details.transport) {
+                        RtspTransport.TCP -> stringResource(R.string.transport_tcp)
+                        RtspTransport.UDP -> stringResource(R.string.transport_udp)
+                        null -> stringResource(R.string.detail_unknown)
                     },
+                )
+                DetailLine(
+                    stringResource(R.string.detail_resolution),
+                    details.frameSize?.let { "${it.width} × ${it.height}" } ?: stringResource(R.string.detail_unknown),
+                )
+                DetailLine(
+                    stringResource(R.string.detail_frame_rate),
+                    details.frameRate?.let { String.format(Locale.getDefault(), "%.1f fps", it) }
+                        ?: stringResource(R.string.detail_unknown),
+                )
+                DetailLine(stringResource(R.string.detail_codec), details.codec ?: stringResource(R.string.detail_unknown))
+                DetailLine(
+                    stringResource(R.string.detail_video_bitrate),
+                    details.videoBitrate?.let { stringResource(R.string.detail_kbps, it / 1000) }
+                        ?: stringResource(R.string.detail_unknown),
                 )
                 DetailLine(
                     stringResource(R.string.detail_reconnect),

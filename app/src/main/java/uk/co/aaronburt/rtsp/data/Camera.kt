@@ -1,6 +1,7 @@
 package uk.co.aaronburt.rtsp.data
 
 enum class Transport { Auto, Tcp, Udp }
+enum class CameraConnectionStatus { Unknown, Checking, Online, Offline }
 
 data class Camera(
     val id: String,
@@ -17,4 +18,6 @@ data class Camera(
     val online: Boolean = true,
     val offlineSince: String? = null,
     val lastFrameAt: String? = null,
+    val connectionStatus: CameraConnectionStatus = if (online) CameraConnectionStatus.Online else CameraConnectionStatus.Offline,
+    val connectionError: String? = null,
 )

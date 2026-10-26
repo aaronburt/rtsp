@@ -33,7 +33,12 @@ class FakeCameraRepository(
     }
 
     override fun retry(id: String) {
-        update(id) { it.copy(online = true, offlineSince = null, lastFrameAt = "now") }
+        update(id) {
+            it.copy(
+                online = true, connectionStatus = CameraConnectionStatus.Online,
+                connectionError = null, offlineSince = null, lastFrameAt = "now",
+            )
+        }
     }
 
     override fun newId(): String = UUID.randomUUID().toString()

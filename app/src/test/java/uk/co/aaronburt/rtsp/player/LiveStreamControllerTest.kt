@@ -144,14 +144,61 @@ class LiveStreamControllerTest {
     }
 
     @Test
-    fun playingCancelsStallWatchdog() = runTest {
+    fun playingWithoutVideoFramesEventuallyReconnects() = runTest {
         val engine = FakeEngine()
         val controller = controller(engine, stallMs = 5_000)
         controller.start(config)
         engine.attached!!.onPlaying()
-        advanceTimeBy(60_000)
+        advanceTimeBy(5_000)
         runCurrent()
+        assertEquals(StreamState.Reconnecting(1, 3, 1_000, "Stream stalled"), controller.state.value)
+    }
+
+    @Test
+    fun advancingVideoFramesKeepAStaticSceneAlive() = runTest {
+        val engine = FakeEngine()
+        val controller = controller(engine, stallMs = 5_000)
+        controller.start(config)
+        engine.attached!!.onPlaying()
+        repeat(20) {
+            advanceTimeBy(1_000)
+            engine.attached!!.onVideoFrame(it * 1_000_000L)
+            runCurrent()
+        }
         assertEquals(StreamState.Playing, controller.state.value)
+        assertEquals(1, engine.loads.size)
+    }
+
+    @Test
+    fun repeatedPresentationTimestampDoesNotKeepFrozenStreamGreen() = runTest {
+        val engine = FakeEngine()
+        val controller = controller(engine, stallMs = 5_000)
+        controller.start(config)
+        engine.attached!!.onPlaying()
+        engine.attached!!.onVideoFrame(1_000_000)
+        runCurrent()
+        repeat(5) {
+            advanceTimeBy(1_000)
+            engine.attached!!.onVideoFrame(1_000_000)
+            runCurrent()
+        }
+        assertTrue(controller.state.value is StreamState.Reconnecting)
+    }
+
+    @Test
+    fun streamDetailsAreClearedWhenSwitchingQualityAndPausing() = runTest {
+        val engine = FakeEngine()
+        val controller = controller(engine)
+        controller.start(config)
+        val details = StreamDetails(FrameSize(1920, 1080), 25f, "H.264", 2_000_000, RtspTransport.TCP)
+        engine.attached!!.onStreamDetails(details)
+        assertEquals(details, controller.details.value)
+        controller.selectQuality(StreamQuality.Sub)
+        assertEquals(StreamDetails(), controller.details.value)
+        assertEquals(null, controller.frameSize.value)
+        engine.attached!!.onStreamDetails(details)
+        controller.pause()
+        assertEquals(StreamDetails(), controller.details.value)
     }
 
     @Test

@@ -33,18 +33,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
-import uk.co.aaronburt.rtsp.data.Transport
-import uk.co.aaronburt.rtsp.data.splitCredentials
 import uk.co.aaronburt.rtsp.player.LiveStreamController
 import uk.co.aaronburt.rtsp.player.Media3Engine
 import uk.co.aaronburt.rtsp.player.ReconnectPolicy
-import uk.co.aaronburt.rtsp.player.RtspTransport
-import uk.co.aaronburt.rtsp.player.StreamConfig
 import uk.co.aaronburt.rtsp.player.StreamQuality
 import uk.co.aaronburt.rtsp.player.StreamState
-import uk.co.aaronburt.rtsp.player.StreamStatus
 import uk.co.aaronburt.rtsp.player.toStatus
-import uk.co.aaronburt.rtsp.player.withCredentials
+import uk.co.aaronburt.rtsp.player.toStreamConfig
 import uk.co.aaronburt.rtsp.snapshot.SurfaceCapture
 import uk.co.aaronburt.rtsp.ui.PlayerSurface
 import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
@@ -67,7 +62,7 @@ private fun Media3Player(
     quality: StreamQuality,
     muted: Boolean,
     modifier: Modifier,
-    onStatus: (StreamStatus) -> Unit,
+    onStatus: (PlayerInfo) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = remember(camera.id) { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
@@ -90,7 +85,7 @@ private fun Media3Player(
         }
     }
 
-    val config = remember(camera.url, camera.username, camera.password, camera.transport, camera.latencyMs) {
+    val config = remember(camera.url, camera.subUrl, camera.username, camera.password, camera.transport, camera.latencyMs) {
         camera.toStreamConfig()
     }
     LaunchedEffect(controller, muted) { controller.setMuted(muted) }
@@ -110,8 +105,9 @@ private fun Media3Player(
     }
 
     val state by controller.state.collectAsStateWithLifecycle()
+    val details by controller.details.collectAsStateWithLifecycle()
     val currentOnStatus by rememberUpdatedState(onStatus)
-    LaunchedEffect(state) { currentOnStatus(state.toStatus()) }
+    LaunchedEffect(state, details) { currentOnStatus(PlayerInfo(state.toStatus(), details)) }
     val snapshot = rememberSnapshot(camera.id)
     val backdropAlpha by animateFloatAsState(
         targetValue = if (state == StreamState.Playing) 0f else 1f,
@@ -172,18 +168,4 @@ private fun StatusPanel(state: StreamState, onRetry: () -> Unit, modifier: Modif
             Button(onClick = onRetry) { Text(stringResource(R.string.player_retry)) }
         }
     }
-}
-
-fun Camera.toStreamConfig(): StreamConfig {
-    val cleaned = splitCredentials(url).url
-    return StreamConfig(
-        name = name,
-        mainUrl = withCredentials(cleaned, username, password),
-        subUrl = subUrl?.takeIf { it.isNotBlank() }?.let { withCredentials(splitCredentials(it).url, username, password) },
-        transport = when (transport) {
-            Transport.Udp -> RtspTransport.UDP
-            Transport.Tcp, Transport.Auto -> RtspTransport.TCP
-        },
-        latencyMs = latencyMs,
-    )
 }
