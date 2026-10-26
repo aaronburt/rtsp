@@ -7,8 +7,6 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -22,8 +20,6 @@ data class LiveState(
     val camera: Camera? = null,
     val quality: StreamQuality = StreamQuality.Main,
     val muted: Boolean = true,
-    val recording: Boolean = false,
-    val recordingSeconds: Int = 0,
     val detailsOpen: Boolean = false,
 )
 
@@ -37,7 +33,6 @@ class LiveViewModel(
             muted = repository.get(cameraId)?.startMuted ?: true,
         ),
     )
-    private var timer: Job? = null
 
     val state: StateFlow<LiveState> = mutableState
 
@@ -64,21 +59,6 @@ class LiveViewModel(
     fun toggleFavourite() {
         val camera = mutableState.value.camera ?: return
         repository.setFavourite(camera.id, !camera.favourite)
-    }
-
-    fun toggleRecording() {
-        if (mutableState.value.recording) {
-            timer?.cancel()
-            mutableState.update { it.copy(recording = false, recordingSeconds = 0) }
-        } else {
-            mutableState.update { it.copy(recording = true, recordingSeconds = 0) }
-            timer = viewModelScope.launch {
-                while (true) {
-                    delay(1000)
-                    mutableState.update { it.copy(recordingSeconds = it.recordingSeconds + 1) }
-                }
-            }
-        }
     }
 
     companion object {

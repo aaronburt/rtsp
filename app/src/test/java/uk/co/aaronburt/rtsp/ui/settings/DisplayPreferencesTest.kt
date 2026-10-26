@@ -18,16 +18,4 @@ class DisplayPreferencesTest {
         prefs.setShowClock(false)
         assertFalse(prefs.showClock.value)
     }
-
-    @Test
-    fun recordingIsNotAllowedByDefault() {
-        assertFalse(InMemoryDisplayPreferences().allowRecording.value)
-    }
-
-    @Test
-    fun recordingCanBeAllowed() {
-        val prefs = InMemoryDisplayPreferences()
-        prefs.setAllowRecording(true)
-        assertTrue(prefs.allowRecording.value)
-    }
 }
