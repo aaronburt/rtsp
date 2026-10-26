@@ -36,6 +36,7 @@
 - Default transport, latency buffer and muted state for newly added cameras
 - Multiview grids of 1, 2x2 or 2x3 using sub streams to save bandwidth
 - Favourites, search and last-seen snapshots
+- Optional image preview refresh every 15 seconds for visible cameras in the camera list
 - No accounts and no cloud service
 
 ## Install

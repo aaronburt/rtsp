@@ -30,6 +30,7 @@ fun PlayerSurface(
     controller: LiveStreamController,
     modifier: Modifier = Modifier,
     capture: SurfaceCapture? = null,
+    keepScreenOn: Boolean = true,
 ) {
     val frameSize by controller.frameSize.collectAsStateWithLifecycle()
     val aspect = frameSize?.aspectRatio?.takeIf { it > 0f }
@@ -38,12 +39,12 @@ fun PlayerSurface(
         if (zoom == null) {
             AndroidView(
                 modifier = if (aspect != null) Modifier.aspectRatio(aspect) else Modifier.fillMaxSize(),
-                factory = { context -> createVideoSurface(context, controller, capture) },
+                factory = { context -> createVideoSurface(context, controller, capture, keepScreenOn) },
             )
         } else {
             AndroidView(
                 modifier = Modifier.matchParentSize(),
-                factory = { context -> VideoSurfaceView(context, controller, capture) },
+                factory = { context -> VideoSurfaceView(context, controller, capture, keepScreenOn) },
                 update = { it.update(aspect, zoom) },
             )
         }
@@ -55,8 +56,9 @@ private class VideoSurfaceView(
     context: Context,
     controller: LiveStreamController,
     capture: SurfaceCapture?,
+    keepScreenOn: Boolean,
 ) : FrameLayout(context) {
-    private val video = createVideoSurface(context, controller, capture)
+    private val video = createVideoSurface(context, controller, capture, keepScreenOn)
     private var aspect: Float? = null
     private var zoom: VideoZoomState? = null
 
@@ -108,9 +110,9 @@ private class VideoSurfaceView(
     }
 }
 
-private fun createVideoSurface(context: Context, controller: LiveStreamController, capture: SurfaceCapture?) =
+private fun createVideoSurface(context: Context, controller: LiveStreamController, capture: SurfaceCapture?, screenOn: Boolean) =
     SurfaceView(context).apply {
-        keepScreenOn = true
+        keepScreenOn = screenOn
         capture?.attach(this)
         holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) {

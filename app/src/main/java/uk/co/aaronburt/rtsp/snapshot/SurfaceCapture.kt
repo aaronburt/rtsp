@@ -49,8 +49,8 @@ class SurfaceCapture {
         }
     }
 
-    suspend fun captureFrame(size: FrameSize?): Bitmap? = suspendCancellableCoroutine { continuation ->
-        request(maxDimension = 1920, sourceSize = size) { bitmap ->
+    suspend fun captureFrame(size: FrameSize?, maxDimension: Int = 1920): Bitmap? = suspendCancellableCoroutine { continuation ->
+        request(maxDimension = maxDimension, sourceSize = size) { bitmap ->
             continuation.resume(bitmap) { _, value, _ -> value?.recycle() }
         }
     }

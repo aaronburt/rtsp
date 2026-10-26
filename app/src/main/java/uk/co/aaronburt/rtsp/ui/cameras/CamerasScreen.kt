@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledIconButton
@@ -34,6 +35,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,8 +78,12 @@ fun CamerasScreen(
     onAddCamera: () -> Unit,
     onEditCamera: (String) -> Unit,
     modifier: Modifier = Modifier,
+    refreshPreviews: Boolean = false,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val gridState = rememberLazyGridState()
+    val visibleIds by remember { derivedStateOf { gridState.layoutInfo.visibleItemsInfo.map { it.key }.toSet() } }
+    val previewScheduler = remember { PreviewRefreshScheduler() }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -96,6 +103,7 @@ fun CamerasScreen(
             onFilterChange = viewModel::setFilter,
         )
         LazyVerticalGrid(
+            state = gridState,
             columns = GridCells.Adaptive(148.dp),
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(16.dp),
@@ -110,6 +118,12 @@ fun CamerasScreen(
                         if (state.editing) onEditCamera(camera.id) else onOpenCamera(camera.id)
                     },
                     onRetry = { viewModel.retry(camera.id) },
+                    refreshPreview = refreshPreviews && camera.id in visibleIds &&
+                        camera.connectionStatus != CameraConnectionStatus.Checking,
+                    previewScheduler = previewScheduler,
+                    onPreviewConnection = { online ->
+                        viewModel.reportConnection(camera.id, if (online) StreamStatus.Live else StreamStatus.Error)
+                    },
                 )
             }
             if (state.visible.isEmpty() && state.all.isNotEmpty()) {
@@ -233,6 +247,9 @@ private fun CameraTile(
     editing: Boolean,
     onClick: () -> Unit,
     onRetry: () -> Unit,
+    refreshPreview: Boolean,
+    previewScheduler: PreviewRefreshScheduler,
+    onPreviewConnection: (Boolean) -> Unit,
 ) {
     val shape = RoundedCornerShape(14.dp)
     val offline = !camera.online
@@ -254,6 +271,15 @@ private fun CameraTile(
                     .background(if (offline) OfflineVideo else cameraTint(camera.id)),
                 contentAlignment = Alignment.Center,
             ) {
+                CameraPreviewRefresh(
+                    camera = camera,
+                    enabled = refreshPreview,
+                    scheduler = previewScheduler,
+                    onConnection = onPreviewConnection,
+                    modifier = Modifier.matchParentSize(),
+                )
+                // Keep the last still image visible while a short capture connection is open.
+                Box(Modifier.matchParentSize().background(if (offline) OfflineVideo else cameraTint(camera.id)))
                 if (snapshot != null) {
                     SnapshotImage(snapshot, Modifier.matchParentSize(), alpha = if (offline) 0.35f else 1f)
                 }

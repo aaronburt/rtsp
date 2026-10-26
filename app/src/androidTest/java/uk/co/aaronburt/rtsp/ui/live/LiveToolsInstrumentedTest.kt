@@ -172,7 +172,7 @@ class LiveToolsInstrumentedTest {
     }
 }
 
-private class DrawingEngine : PlayerEngine {
+internal class DrawingEngine : PlayerEngine {
     private var listener: PlayerEngine.Listener? = null
     private var surface: Surface? = null
     private val handler = Handler(Looper.getMainLooper())

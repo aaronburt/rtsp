@@ -77,11 +77,13 @@ class RtspAppSmokeTest {
         val preferences = InMemoryDisplayPreferences()
         launch(preferences)
         compose.onNodeWithText("Settings").performClick()
+        compose.onNodeWithText("Refresh image previews").performScrollTo().performClick()
         compose.onNodeWithText("Pinch to zoom").performScrollTo().performClick()
         compose.onNodeWithText("Show clock on video").performScrollTo().performClick()
         compose.onNodeWithText("Allow recording").performScrollTo().performClick()
         compose.waitForIdle()
         assertTrue(preferences.pinchToZoom.value)
+        assertTrue(preferences.refreshPreviews.value)
         assertTrue(preferences.showClock.value)
         assertTrue(preferences.allowRecording.value)
     }
