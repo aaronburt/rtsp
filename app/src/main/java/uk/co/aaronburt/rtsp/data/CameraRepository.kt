@@ -15,5 +15,9 @@ interface CameraRepository {
 
     fun retry(id: String)
 
+    fun refresh() {}
+
+    fun reportConnection(id: String, online: Boolean) {}
+
     fun newId(): String
 }

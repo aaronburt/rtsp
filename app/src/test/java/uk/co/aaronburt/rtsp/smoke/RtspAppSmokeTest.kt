@@ -19,6 +19,13 @@ import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.ui.RtspApp
 import uk.co.aaronburt.rtsp.ui.settings.InMemoryDisplayPreferences
 import uk.co.aaronburt.rtsp.ui.theme.RtspTheme
+import androidx.compose.runtime.LaunchedEffect
+import uk.co.aaronburt.rtsp.ui.live.PlayerInfo
+import uk.co.aaronburt.rtsp.ui.live.PlayerSlot
+import uk.co.aaronburt.rtsp.player.FrameSize
+import uk.co.aaronburt.rtsp.player.RtspTransport
+import uk.co.aaronburt.rtsp.player.StreamDetails
+import uk.co.aaronburt.rtsp.player.StreamStatus
 
 @RunWith(RobolectricTestRunner::class)
 class RtspAppSmokeTest {
@@ -91,5 +98,24 @@ class RtspAppSmokeTest {
         compose.waitForIdle()
         compose.waitForIdle()
         assertFalse(compose.onAllNodesWithText("Multiview").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun streamDetailsShowMeasuredVideoAndNegotiatedTransport() {
+        val slot: PlayerSlot = { _, _, _, _, onInfo ->
+            LaunchedEffect(Unit) {
+                onInfo(PlayerInfo(StreamStatus.Live, StreamDetails(
+                    FrameSize(1920, 1080), 25f, "H.264", 2_000_000, RtspTransport.UDP,
+                )))
+            }
+        }
+        compose.setContent { RtspTheme { RtspApp(AppContainer(), playerSlot = slot) } }
+        compose.onAllNodesWithText("Front Door")[0].performClick()
+        compose.onNodeWithText("Stream details").performClick()
+        assertShown("1920 × 1080")
+        assertShown("25.0 fps")
+        assertShown("H.264")
+        assertShown("2000 kbps")
+        assertShown("UDP") // The saved camera requests TCP; display the negotiated result.
     }
 }

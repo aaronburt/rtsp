@@ -21,21 +21,24 @@ import uk.co.aaronburt.rtsp.R
 import uk.co.aaronburt.rtsp.data.Camera
 import uk.co.aaronburt.rtsp.player.StreamQuality
 import uk.co.aaronburt.rtsp.player.StreamStatus
+import uk.co.aaronburt.rtsp.player.StreamDetails
 import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
 import uk.co.aaronburt.rtsp.ui.components.SnapshotImage
 import uk.co.aaronburt.rtsp.ui.components.rememberSnapshot
+
+data class PlayerInfo(val status: StreamStatus = StreamStatus.Pending, val details: StreamDetails = StreamDetails())
 
 typealias PlayerSlot = @Composable (
     camera: Camera,
     quality: StreamQuality,
     muted: Boolean,
     modifier: Modifier,
-    onStatus: (StreamStatus) -> Unit,
+    onStatus: (PlayerInfo) -> Unit,
 ) -> Unit
 
 val PlaceholderPlayerSlot: PlayerSlot = { camera, _, _, modifier, onStatus ->
     LaunchedEffect(camera.online) {
-        onStatus(if (camera.online) StreamStatus.Live else StreamStatus.Error)
+        onStatus(PlayerInfo(if (camera.online) StreamStatus.Live else StreamStatus.Error))
     }
     VideoPlaceholder(camera, modifier)
 }

@@ -27,6 +27,10 @@ class LiveStreamController(
     private val _frameSize = MutableStateFlow<FrameSize?>(null)
     val frameSize: StateFlow<FrameSize?> = _frameSize.asStateFlow()
 
+    private val _details = MutableStateFlow(StreamDetails())
+    val details: StateFlow<StreamDetails> = _details.asStateFlow()
+    private var lastPresentationTimeUs: Long? = null
+
     private var requested: StreamConfig? = null
     private var attempt = 0
     private var suspended = false
@@ -85,6 +89,7 @@ class LiveStreamController(
         cancelTimers()
         engine.stop()
         _frameSize.value = null
+        _details.value = StreamDetails()
         _state.value = StreamState.Idle
     }
 
@@ -126,9 +131,23 @@ class LiveStreamController(
 
     override fun onPlaying() {
         if (!accepting()) return
-        stallJob?.cancel()
         attempt = 0
         _state.value = StreamState.Playing
+        armStall()
+    }
+
+    override fun onVideoFrame(presentationTimeUs: Long) {
+        if (!accepting() || lastPresentationTimeUs == presentationTimeUs) return
+        lastPresentationTimeUs = presentationTimeUs
+        stallJob?.cancel()
+        stallJob = null
+        armStall()
+    }
+
+    override fun onStreamDetails(details: StreamDetails) {
+        if (!accepting()) return
+        _details.value = details
+        details.frameSize?.let { _frameSize.value = it }
     }
 
     override fun onFrameSize(size: FrameSize) {
@@ -164,6 +183,9 @@ class LiveStreamController(
     private fun connect() {
         val current = _active.value ?: return
         cancelTimers()
+        _frameSize.value = null
+        _details.value = StreamDetails()
+        lastPresentationTimeUs = null
         _state.value = StreamState.Connecting
         armStall()
         try {

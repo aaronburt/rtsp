@@ -108,6 +108,7 @@ fun MultiviewScreen(
                                         playerSlot = playerSlot,
                                         onOpen = { onOpenCamera(camera.id) },
                                         onRetry = { viewModel.retry(camera.id) },
+                                        onStatus = { viewModel.reportConnection(camera.id, it) },
                                     )
                                 }
                             }
@@ -133,6 +134,7 @@ private fun MultiviewTile(
     playerSlot: PlayerSlot,
     onOpen: () -> Unit,
     onRetry: () -> Unit,
+    onStatus: (StreamStatus) -> Unit,
 ) {
     val openLabel = stringResource(R.string.multiview_open, camera.name)
     val snapshot = rememberSnapshot(camera.id)
@@ -151,7 +153,10 @@ private fun MultiviewTile(
             .semantics(mergeDescendants = true) { contentDescription = camera.name },
     ) {
         if (camera.online) {
-            playerSlot(camera, quality, true, Modifier.fillMaxSize()) { playerStatus = it }
+            playerSlot(camera, quality, true, Modifier.fillMaxSize()) {
+                playerStatus = it.status
+                onStatus(it.status)
+            }
         } else {
             Box(
                 modifier = Modifier

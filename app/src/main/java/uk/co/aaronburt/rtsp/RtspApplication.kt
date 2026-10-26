@@ -8,6 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import uk.co.aaronburt.rtsp.data.AppContainer
 import uk.co.aaronburt.rtsp.data.PersistentCameraRepository
+import uk.co.aaronburt.rtsp.data.MonitoredCameraRepository
+import uk.co.aaronburt.rtsp.player.Media3ConnectionTester
 import uk.co.aaronburt.rtsp.recording.FileRecordingStore
 import uk.co.aaronburt.rtsp.recording.StreamRecorder
 import uk.co.aaronburt.rtsp.snapshot.FileSnapshotStore
@@ -24,15 +26,22 @@ class RtspApplication : Application() {
         val recordingStore = FileRecordingStore(
             File(getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: filesDir, "recordings"),
         )
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        val connectionTester = Media3ConnectionTester(this)
         container = AppContainer(
-            repository = PersistentCameraRepository(
-                saved = createSavedCameraRepository(this),
-                scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+            repository = MonitoredCameraRepository(
+                delegate = PersistentCameraRepository(
+                    saved = createSavedCameraRepository(this),
+                    scope = scope,
+                ),
+                tester = connectionTester,
+                scope = scope,
             ),
             snapshotStore = FileSnapshotStore(File(filesDir, "snapshots")),
             displayPreferences = SharedDisplayPreferences.create(this),
             recordingStore = recordingStore,
             recordingController = StreamRecorder(recordingStore),
+            connectionTester = connectionTester,
         )
         Updater.start(this)
     }
