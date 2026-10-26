@@ -130,6 +130,7 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.rtsp)
     implementation(libs.androidx.media3.muxer)
     implementation(libs.kotlinx.coroutines.android)
+    implementation("com.google.zxing:core:3.5.4")
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

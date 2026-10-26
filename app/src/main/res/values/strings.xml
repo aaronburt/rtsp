@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="camera_backup_title">Encrypted camera backup</string>
+    <string name="camera_backup_summary">Save your camera settings and credentials as encrypted QR images, then restore them from your photo library.</string>
+    <string name="camera_backup_create">Create backup (%1$d)</string>
+    <string name="camera_backup_restore">Restore from QR images</string>
+    <string name="camera_backup_create_title">Create encrypted backup</string>
+    <string name="camera_backup_secret_warning">Choose a PIN or password and keep it separate from the images. If you forget it, the backup cannot be recovered.</string>
+    <string name="camera_backup_short_secret_warning">A short PIN can be guessed offline by someone who gets a copy of these images. A longer password is stronger.</string>
+    <string name="camera_backup_pin">PIN or password</string>
+    <string name="camera_backup_confirm_pin">Confirm PIN or password</string>
+    <string name="camera_backup_create_qr">Create QR images</string>
+    <string name="camera_backup_create_failed">Could not create the encrypted backup.</string>
+    <string name="camera_backup_ready_title">Backup ready</string>
+    <string name="camera_backup_ready_message">Your backup has %1$d QR image(s). Save every image together. Keep your PIN or password separate.</string>
+    <string name="camera_backup_page_saved">QR image 1 of %1$d</string>
+    <string name="camera_backup_qr_description">Encrypted camera backup QR image</string>
+    <string name="camera_backup_save_images">Save images to Photos</string>
+    <string name="camera_backup_save_failed">Could not save the QR images. Choose another folder and try again.</string>
+    <string name="camera_backup_read_failed">Could not read the selected QR images. Select every image from one backup.</string>
+    <string name="camera_backup_restore_title">Unlock camera backup</string>
+    <string name="camera_backup_restore_secret_hint">Enter the PIN or password used for this backup. Select all QR images first (%1$d selected).</string>
+    <string name="camera_backup_unlock">Unlock</string>
+    <string name="camera_backup_decrypt_failed">Could not unlock this backup. Check the PIN or password and selected images.</string>
+    <string name="camera_backup_preview_title">Review cameras</string>
+    <string name="camera_backup_preview_message">Add %1$d camera(s) to this device? Existing cameras will not be changed.</string>
+    <string name="camera_backup_add_cameras">Add cameras</string>
+    <string name="camera_backup_imported">Added %1$d camera(s).</string>
     <string name="settings_previews_title">Camera previews</string>
     <string name="settings_refresh_previews_title">Refresh image previews</string>
     <string name="settings_refresh_previews_subtitle">Grab a new image every 15 seconds for cameras visible in the list. Uses extra data and battery.</string>

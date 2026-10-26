@@ -158,7 +158,11 @@ fun RtspApp(
                 RecordingsScreen(viewModel = viewModel(factory = RecordingsViewModel.factory(container)))
             }
             composable(Routes.Settings) {
-                SettingsScreen(preferences = container.displayPreferences, streamDefaults = container.streamDefaults)
+                SettingsScreen(
+                    preferences = container.displayPreferences,
+                    streamDefaults = container.streamDefaults,
+                    cameraRepository = container.cameraRepository,
+                )
             }
             composable(
                 route = Routes.Live,
