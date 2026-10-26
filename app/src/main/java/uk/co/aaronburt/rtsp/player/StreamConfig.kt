@@ -2,8 +2,6 @@ package uk.co.aaronburt.rtsp.player
 
 const val DEFAULT_LATENCY_MS = 500
 
-val LATENCY_PRESETS_MS = listOf(0, 250, 500, 1000, 2000)
-
 enum class RtspTransport { TCP, UDP }
 
 enum class StreamQuality { Main, Sub }
