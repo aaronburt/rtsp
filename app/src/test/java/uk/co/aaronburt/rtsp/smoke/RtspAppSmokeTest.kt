@@ -1,0 +1,85 @@
+package uk.co.aaronburt.rtsp.smoke
+
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import uk.co.aaronburt.rtsp.data.AppContainer
+import uk.co.aaronburt.rtsp.ui.RtspApp
+import uk.co.aaronburt.rtsp.ui.settings.InMemoryDisplayPreferences
+import uk.co.aaronburt.rtsp.ui.theme.RtspTheme
+
+@RunWith(RobolectricTestRunner::class)
+class RtspAppSmokeTest {
+    @get:Rule
+    val compose = createComposeRule()
+
+    private fun launch(preferences: InMemoryDisplayPreferences = InMemoryDisplayPreferences()) {
+        val container = AppContainer(displayPreferences = preferences)
+        compose.setContent { RtspTheme { RtspApp(container = container) } }
+    }
+
+    private fun assertShown(text: String) {
+        assertTrue("expected '$text' on screen", compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun startsOnCamerasListWithNavigationBar() {
+        launch()
+        assertShown("Front Door")
+        assertShown("Back Gate")
+        assertShown("Cameras")
+        assertShown("Multiview")
+        assertShown("Settings")
+    }
+
+    @Test
+    fun recordingsTabIsHiddenUntilRecordingIsAllowed() {
+        launch()
+        assertFalse(compose.onAllNodesWithText("Recordings").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun recordingsTabAppearsWhenRecordingIsAllowed() {
+        launch(InMemoryDisplayPreferences(initialAllowRecording = true))
+        compose.onNodeWithText("Recordings").performClick()
+        assertShown("Recordings and snapshots will appear here.")
+    }
+
+    @Test
+    fun settingsTogglesWriteThroughToPreferences() {
+        val preferences = InMemoryDisplayPreferences()
+        launch(preferences)
+        compose.onNodeWithText("Settings").performClick()
+        compose.onNodeWithText("Pinch to zoom").performClick()
+        compose.onNodeWithText("Show clock on video").performClick()
+        compose.onNodeWithText("Allow recording").performClick()
+        compose.waitForIdle()
+        assertTrue(preferences.pinchToZoom.value)
+        assertTrue(preferences.showClock.value)
+        assertTrue(preferences.allowRecording.value)
+    }
+
+    @Test
+    fun addCameraButtonOpensTheForm() {
+        launch()
+        compose.onNodeWithContentDescription("Add camera").performClick()
+        assertShown("Save camera")
+        assertFalse(compose.onAllNodesWithText("Multiview").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun openingACameraLeavesTheTopLevelTabs() {
+        launch()
+        compose.onAllNodesWithText("Front Door")[0].performClick()
+        compose.waitForIdle()
+        assertFalse(compose.onAllNodesWithText("Multiview").fetchSemanticsNodes().isNotEmpty())
+    }
+}
