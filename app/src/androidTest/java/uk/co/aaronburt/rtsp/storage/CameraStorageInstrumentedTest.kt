@@ -135,7 +135,7 @@ class CameraStorageInstrumentedTest {
         files.forEach { file ->
             assertFalse("${file.name} contains the plaintext password", contains(file.readBytes(), needle))
         }
-        assertTrue(contains(dbFile.readBytes(), "192.168.1.20".toByteArray()))
+        assertFalse(contains(dbFile.readBytes(), "192.168.1.20".toByteArray()))
     }
 
     @Test

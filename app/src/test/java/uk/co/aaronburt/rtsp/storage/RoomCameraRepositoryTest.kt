@@ -75,12 +75,43 @@ class RoomCameraRepositoryTest {
         repo.save(withEmbedded)
         advanceUntilIdle()
         val row = dao.rows.getValue("a")
-        assertEquals("rtsp://10.0.0.5:554/main", row.mainUrl)
-        assertEquals("rtsp://10.0.0.5:554/sub", row.subUrl)
+        assertEquals("rtsp://10.0.0.5:554/main", cipher.decrypt(row.mainUrlCipher, mainUrlContext("a")))
+        assertEquals("rtsp://10.0.0.5:554/sub", cipher.decrypt(row.subUrlCipher!!, subUrlContext("a")))
         assertEquals("admin", row.username)
         assertNotNull(row.passwordCipher)
         assertFalse(row.toString().contains("hunter2hunter2"))
         assertEquals("hunter2hunter2", repo.get("a")?.password)
+    }
+
+    @Test
+    fun saveEncryptsUrlsIncludingQueryStringCredentials() = runTest {
+        val repo = repository()
+        advanceUntilIdle()
+        val url = "rtsp://10.0.0.5:554/live?user=admin&password=hunter2hunter2"
+        repo.save(sample("a").copy(mainUrl = url, subUrl = null))
+        advanceUntilIdle()
+        val row = dao.rows.getValue("a")
+        assertFalse(row.mainUrlCipher.contains("hunter2hunter2"))
+        assertFalse(row.mainUrlCipher.contains("10.0.0.5"))
+        assertNull(row.subUrlCipher)
+        assertEquals(url, repo.get("a")?.mainUrl)
+    }
+
+    @Test
+    fun urlCiphertextIsBoundToItsCameraAndField() = runTest {
+        val repo = repository()
+        advanceUntilIdle()
+        repo.save(sample("a"))
+        advanceUntilIdle()
+        val row = dao.rows.getValue("a")
+        dao.rows["b"] = row.copy(id = "b")
+        dao.rows["a"] = row.copy(mainUrlCipher = row.subUrlCipher!!)
+        val reloaded = repository()
+        advanceUntilIdle()
+        assertEquals("", reloaded.get("a")?.mainUrl)
+        assertEquals("rtsp://10.0.0.5:554/sub", reloaded.get("a")?.subUrl)
+        assertEquals("", reloaded.get("b")?.mainUrl)
+        assertNull(reloaded.get("b")?.subUrl)
     }
 
     @Test
@@ -163,7 +194,8 @@ class RoomCameraRepositoryTest {
     @Test
     fun savesBeforeLoadAreKept() = runTest {
         dao.rows["old"] = CameraEntity(
-            id = "old", name = "Old", mainUrl = "rtsp://h/s", subUrl = null, username = "",
+            id = "old", name = "Old", mainUrlCipher = cipher.encrypt("rtsp://h/s", mainUrlContext("old")),
+            subUrlCipher = null, username = "",
             passwordCipher = null, transport = "Tcp", latencyMs = 200, autoReconnect = true,
             startMuted = true, favourite = false, createdAt = 1,
         )

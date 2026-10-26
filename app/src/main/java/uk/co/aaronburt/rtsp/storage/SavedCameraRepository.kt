@@ -129,8 +129,8 @@ class RoomCameraRepository(
     private fun toEntity(camera: SavedCamera) = CameraEntity(
         id = camera.id,
         name = camera.name,
-        mainUrl = camera.mainUrl,
-        subUrl = camera.subUrl,
+        mainUrlCipher = cipher.encrypt(camera.mainUrl, mainUrlContext(camera.id)),
+        subUrlCipher = camera.subUrl?.let { cipher.encrypt(it, subUrlContext(camera.id)) },
         username = camera.username,
         passwordCipher = camera.password.takeIf { it.isNotEmpty() }?.let { cipher.encrypt(it, camera.id) },
         transport = camera.transport.name,
@@ -144,8 +144,8 @@ class RoomCameraRepository(
     private fun toModel(entity: CameraEntity) = SavedCamera(
         id = entity.id,
         name = entity.name,
-        mainUrl = entity.mainUrl,
-        subUrl = entity.subUrl,
+        mainUrl = cipher.decrypt(entity.mainUrlCipher, mainUrlContext(entity.id)).orEmpty(),
+        subUrl = entity.subUrlCipher?.let { cipher.decrypt(it, subUrlContext(entity.id)) },
         username = entity.username,
         password = entity.passwordCipher?.let { cipher.decrypt(it, entity.id) } ?: "",
         transport = CameraTransport.entries.firstOrNull { it.name == entity.transport } ?: CameraTransport.Tcp,
