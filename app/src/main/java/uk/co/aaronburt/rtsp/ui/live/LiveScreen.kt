@@ -339,9 +339,8 @@ private fun StatsRow(state: LiveState, status: StreamStatus, onToggleDetails: ()
                 DetailLine(
                     stringResource(R.string.detail_transport),
                     when (camera.transport) {
-                        Transport.Auto -> stringResource(R.string.transport_auto)
-                        Transport.Tcp -> stringResource(R.string.transport_tcp)
-                        Transport.Udp -> stringResource(R.string.transport_udp)
+                        Transport.Auto, Transport.Tcp -> stringResource(R.string.transport_tcp)
+                        Transport.Udp -> stringResource(R.string.transport_udp_fallback)
                     },
                 )
                 DetailLine(
