@@ -158,6 +158,13 @@ fun LiveScreen(
                     onClick = viewModel::toggleRecording,
                 )
             }
+            state.recordingError?.let { message ->
+                Text(
+                    text = stringResource(R.string.recording_failed, message),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Danger,
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionButton(
                     icon = R.drawable.ic_photo_camera,
