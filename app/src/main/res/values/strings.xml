@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_previews_title">Camera previews</string>
+    <string name="settings_refresh_previews_title">Refresh image previews</string>
+    <string name="settings_refresh_previews_subtitle">Grab a new image every 15 seconds for cameras visible in the list. Uses extra data and battery.</string>
     <string name="app_name">RTSP</string>
 
     <string name="nav_cameras">Cameras</string>

@@ -84,6 +84,7 @@ fun RtspApp(
     val allowRecording by container.displayPreferences.allowRecording.collectAsStateWithLifecycle()
     val pinchToZoom by container.displayPreferences.pinchToZoom.collectAsStateWithLifecycle()
     val multiviewMainStream by container.displayPreferences.multiviewMainStream.collectAsStateWithLifecycle()
+    val refreshPreviews by container.displayPreferences.refreshPreviews.collectAsStateWithLifecycle()
     val pipState by LocalPictureInPicture.current.state.collectAsStateWithLifecycle()
 
     UpdatePrompt()
@@ -137,6 +138,7 @@ fun RtspApp(
             composable(Routes.Cameras) {
                 CamerasScreen(
                     viewModel = viewModel(factory = CamerasViewModel.factory(container)),
+                    refreshPreviews = refreshPreviews,
                     onOpenCamera = { navController.navigate(Routes.live(it)) },
                     onAddCamera = { navController.navigate(Routes.Add) },
                     onEditCamera = { navController.navigate(Routes.edit(it)) },

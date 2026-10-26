@@ -39,6 +39,7 @@ fun SettingsScreen(
     val pinchToZoom by preferences.pinchToZoom.collectAsStateWithLifecycle()
     val multiviewMainStream by preferences.multiviewMainStream.collectAsStateWithLifecycle()
     val defaults by streamDefaults.defaults.collectAsStateWithLifecycle()
+    val refreshPreviews by preferences.refreshPreviews.collectAsStateWithLifecycle()
     val latencyLabel = stringResource(R.string.field_latency)
     Column(
         modifier = modifier
@@ -48,6 +49,14 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(text = stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium)
+        SettingsSection(title = stringResource(R.string.settings_previews_title)) {
+            SwitchRow(
+                title = stringResource(R.string.settings_refresh_previews_title),
+                subtitle = stringResource(R.string.settings_refresh_previews_subtitle),
+                checked = refreshPreviews,
+                onCheckedChange = preferences::setRefreshPreviews,
+            )
+        }
         SettingsSection(title = stringResource(R.string.settings_stream_defaults)) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.stream_defaults_hint), style = MaterialTheme.typography.bodySmall,
