@@ -7,7 +7,7 @@ internal class EncryptUrlsMigration(
     private val cipher: CredentialCipher,
 ) : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("PRAGMA secure_delete = ON")
+        db.query("PRAGMA secure_delete = ON").use { it.moveToFirst() }
         val rows = db.query("SELECT id, mainUrl, subUrl FROM cameras").use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {

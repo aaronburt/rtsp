@@ -28,6 +28,7 @@ class RtspAppSmokeTest {
     }
 
     private fun assertShown(text: String) {
+        compose.waitForIdle()
         assertTrue("expected '$text' on screen", compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty())
     }
 
@@ -44,6 +45,7 @@ class RtspAppSmokeTest {
     @Test
     fun recordingsTabIsHiddenUntilRecordingIsAllowed() {
         launch()
+        compose.waitForIdle()
         assertFalse(compose.onAllNodesWithText("Recordings").fetchSemanticsNodes().isNotEmpty())
     }
 
@@ -73,6 +75,7 @@ class RtspAppSmokeTest {
         launch()
         compose.onNodeWithContentDescription("Add camera").performClick()
         assertShown("Save camera")
+        compose.waitForIdle()
         assertFalse(compose.onAllNodesWithText("Multiview").fetchSemanticsNodes().isNotEmpty())
     }
 
@@ -80,6 +83,7 @@ class RtspAppSmokeTest {
     fun openingACameraLeavesTheTopLevelTabs() {
         launch()
         compose.onAllNodesWithText("Front Door")[0].performClick()
+        compose.waitForIdle()
         compose.waitForIdle()
         assertFalse(compose.onAllNodesWithText("Multiview").fetchSemanticsNodes().isNotEmpty())
     }
