@@ -3,6 +3,7 @@ package uk.co.aaronburt.rtsp.ui
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +11,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +38,7 @@ import uk.co.aaronburt.rtsp.ui.live.LiveScreen
 import uk.co.aaronburt.rtsp.ui.live.LiveViewModel
 import uk.co.aaronburt.rtsp.ui.live.PlaceholderPlayerSlot
 import uk.co.aaronburt.rtsp.ui.live.PlayerSlot
+import uk.co.aaronburt.rtsp.ui.live.LocalPictureInPicture
 import uk.co.aaronburt.rtsp.ui.multiview.MultiviewScreen
 import uk.co.aaronburt.rtsp.ui.recordings.RecordingsScreen
 import uk.co.aaronburt.rtsp.ui.recordings.RecordingsViewModel
@@ -81,12 +84,14 @@ fun RtspApp(
     val allowRecording by container.displayPreferences.allowRecording.collectAsStateWithLifecycle()
     val pinchToZoom by container.displayPreferences.pinchToZoom.collectAsStateWithLifecycle()
     val multiviewMainStream by container.displayPreferences.multiviewMainStream.collectAsStateWithLifecycle()
+    val pipState by LocalPictureInPicture.current.state.collectAsStateWithLifecycle()
 
     UpdatePrompt()
 
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = if (pipState.videoOnly) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
         bottomBar = {
             if (showBar) {
                 NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
@@ -151,7 +156,7 @@ fun RtspApp(
                 RecordingsScreen(viewModel = viewModel(factory = RecordingsViewModel.factory(container)))
             }
             composable(Routes.Settings) {
-                SettingsScreen(preferences = container.displayPreferences)
+                SettingsScreen(preferences = container.displayPreferences, streamDefaults = container.streamDefaults)
             }
             composable(
                 route = Routes.Live,

@@ -1,5 +1,7 @@
 package uk.co.aaronburt.rtsp.ui.live
 
+import android.content.Context
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +43,9 @@ import uk.co.aaronburt.rtsp.player.StreamState
 import uk.co.aaronburt.rtsp.player.toStatus
 import uk.co.aaronburt.rtsp.player.toStreamConfig
 import uk.co.aaronburt.rtsp.snapshot.SurfaceCapture
+import uk.co.aaronburt.rtsp.snapshot.SnapshotSource
+import uk.co.aaronburt.rtsp.player.PlayerEngine
+import uk.co.aaronburt.rtsp.player.VideoSampleTap
 import uk.co.aaronburt.rtsp.ui.PlayerSurface
 import uk.co.aaronburt.rtsp.ui.components.LastSeenChip
 import uk.co.aaronburt.rtsp.ui.components.LocalRecordingController
@@ -57,12 +62,13 @@ val Media3PlayerSlot: PlayerSlot = { camera, quality, muted, modifier, onStatus 
 }
 
 @Composable
-private fun Media3Player(
+internal fun Media3Player(
     camera: Camera,
     quality: StreamQuality,
     muted: Boolean,
     modifier: Modifier,
     onStatus: (PlayerInfo) -> Unit,
+    engineFactory: (Context, VideoSampleTap?) -> PlayerEngine = { context, tap -> Media3Engine(context, tap) },
 ) {
     val context = LocalContext.current
     val scope = remember(camera.id) { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
@@ -70,13 +76,30 @@ private fun Media3Player(
     val controller = remember(scope) {
         val attempts = if (camera.autoReconnect) RECONNECT_ATTEMPTS else 0
         LiveStreamController(
-            Media3Engine(context, recording.tapFor(camera.id)),
+            engineFactory(context, recording.tapFor(camera.id)),
             scope,
             ReconnectPolicy(maxAttempts = attempts),
         )
     }
     val recorder = LocalSnapshotRecorder.current
     val capture = remember(camera.id) { SurfaceCapture() }
+    val snapshotSource = remember(controller, capture) {
+        SnapshotSource {
+            val session = controller.captureGeneration
+            if (controller.state.value != StreamState.Playing || !controller.videoFrameAvailable.value) {
+                null
+            } else {
+                val bitmap = capture.captureFrame(controller.frameSize.value)
+                if (session == controller.captureGeneration && controller.state.value == StreamState.Playing &&
+                    controller.videoFrameAvailable.value) {
+                    bitmap
+                } else {
+                    bitmap?.recycle()
+                    null
+                }
+            }
+        }
+    }
     DisposableEffect(controller) {
         onDispose {
             if (controller.state.value == StreamState.Playing) recorder.record(camera.id, capture)
@@ -106,8 +129,14 @@ private fun Media3Player(
 
     val state by controller.state.collectAsStateWithLifecycle()
     val details by controller.details.collectAsStateWithLifecycle()
+    val frameAvailable by controller.videoFrameAvailable.collectAsStateWithLifecycle()
     val currentOnStatus by rememberUpdatedState(onStatus)
-    LaunchedEffect(state, details) { currentOnStatus(PlayerInfo(state.toStatus(), details)) }
+    LaunchedEffect(state, details, frameAvailable) {
+        currentOnStatus(PlayerInfo(
+            state.toStatus(), details,
+            snapshotSource.takeIf { state == StreamState.Playing && frameAvailable },
+        ))
+    }
     val snapshot = rememberSnapshot(camera.id)
     val backdropAlpha by animateFloatAsState(
         targetValue = if (state == StreamState.Playing) 0f else 1f,

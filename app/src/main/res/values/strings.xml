@@ -118,4 +118,13 @@
     <string name="detail_codec">Codec</string>
     <string name="detail_video_bitrate">Video bitrate</string>
     <string name="detail_kbps">%1$d kbps</string>
+    <string name="settings_stream_defaults">Stream defaults</string>
+    <string name="stream_defaults_hint">Used for new cameras. Each camera can have its own settings.</string>
+    <string name="stream_default_muted_hint">Start new cameras with audio muted.</string>
+    <string name="action_picture_in_picture">Picture-in-picture</string>
+    <string name="pip_unavailable">Picture-in-picture is unavailable. Check the app’s system settings.</string>
+    <string name="snapshot_saved">Snapshot saved</string>
+    <string name="snapshot_failed">Could not save a live snapshot. Check that the camera is playing and try again.</string>
+    <string name="snapshot_share_failed">Could not open a sharing app.</string>
+    <string name="action_share">Share</string>
 </resources>

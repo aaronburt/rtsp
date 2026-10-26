@@ -22,6 +22,7 @@ import uk.co.aaronburt.rtsp.player.isRtspUrl
 import uk.co.aaronburt.rtsp.player.CameraConnectionTester
 import uk.co.aaronburt.rtsp.player.ConnectionResult
 import uk.co.aaronburt.rtsp.player.NoConnectionTester
+import uk.co.aaronburt.rtsp.ui.settings.StreamDefaults
 
 data class FormErrors(
     val nameMissing: Boolean = false,
@@ -65,6 +66,7 @@ class CameraFormViewModel(
     private val editingId: String?,
     private val repository: CameraRepository,
     private val connectionTester: CameraConnectionTester = NoConnectionTester,
+    defaults: StreamDefaults = StreamDefaults(),
 ) : ViewModel() {
     private var testJob: Job? = null
     private val existing = editingId?.let(repository::get)
@@ -82,7 +84,7 @@ class CameraFormViewModel(
                 autoReconnect = it.autoReconnect,
                 startMuted = it.startMuted,
             )
-        } ?: FormState(),
+        } ?: FormState(transport = defaults.transport, latencyMs = defaults.latencyMs, startMuted = defaults.startMuted),
     )
 
     val state: StateFlow<FormState> = mutableState
@@ -185,7 +187,10 @@ class CameraFormViewModel(
         fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val handle: SavedStateHandle = createSavedStateHandle()
-                CameraFormViewModel(handle.get<String>(ARG_ID), container.cameraRepository, container.connectionTester)
+                CameraFormViewModel(
+                    handle.get<String>(ARG_ID), container.cameraRepository, container.connectionTester,
+                    container.streamDefaults.defaults.value,
+                )
             }
         }
     }
