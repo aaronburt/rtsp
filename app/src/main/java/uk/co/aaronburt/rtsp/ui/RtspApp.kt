@@ -38,12 +38,15 @@ import uk.co.aaronburt.rtsp.ui.live.LiveViewModel
 import uk.co.aaronburt.rtsp.ui.live.PlaceholderPlayerSlot
 import uk.co.aaronburt.rtsp.ui.live.PlayerSlot
 import uk.co.aaronburt.rtsp.ui.multiview.MultiviewScreen
+import uk.co.aaronburt.rtsp.ui.recordings.RecordingsScreen
+import uk.co.aaronburt.rtsp.ui.recordings.RecordingsViewModel
 import uk.co.aaronburt.rtsp.ui.settings.SettingsScreen
 import uk.co.aaronburt.rtsp.update.UpdatePrompt
 
 object Routes {
     const val Cameras = "cameras"
     const val Multiview = "multiview"
+    const val Recordings = "recordings"
     const val Settings = "settings"
     const val Live = "live/{id}"
     const val Add = "camera/add"
@@ -59,10 +62,11 @@ private data class TopLevel(val route: String, val label: Int, val icon: Int)
 private val topLevel = listOf(
     TopLevel(Routes.Cameras, R.string.nav_cameras, R.drawable.ic_videocam),
     TopLevel(Routes.Multiview, R.string.nav_multiview, R.drawable.ic_grid_view),
+    TopLevel(Routes.Recordings, R.string.nav_recordings, R.drawable.ic_video_library),
     TopLevel(Routes.Settings, R.string.nav_settings, R.drawable.ic_settings),
 )
 
-private val barRoutes = setOf(Routes.Cameras, Routes.Settings)
+private val barRoutes = setOf(Routes.Cameras, Routes.Recordings, Routes.Settings)
 
 @Composable
 fun RtspApp(
@@ -75,6 +79,7 @@ fun RtspApp(
     val destination = backStackEntry?.destination
     val showBar = destination?.route in barRoutes
     val showClock by container.displayPreferences.showClock.collectAsStateWithLifecycle()
+    val allowRecording by container.displayPreferences.allowRecording.collectAsStateWithLifecycle()
     val pinchToZoom by container.displayPreferences.pinchToZoom.collectAsStateWithLifecycle()
     val multiviewMainStream by container.displayPreferences.multiviewMainStream.collectAsStateWithLifecycle()
 
@@ -86,7 +91,7 @@ fun RtspApp(
         bottomBar = {
             if (showBar) {
                 NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-                    topLevel.forEach { item ->
+                    topLevel.filter { it.route != Routes.Recordings || allowRecording }.forEach { item ->
                         val selected = destination?.hierarchy?.any { it.route == item.route } == true
                         NavigationBarItem(
                             selected = selected,
@@ -143,6 +148,9 @@ fun RtspApp(
                     useMainStream = multiviewMainStream,
                 )
             }
+            composable(Routes.Recordings) {
+                RecordingsScreen(viewModel = viewModel(factory = RecordingsViewModel.factory(container)))
+            }
             composable(Routes.Settings) {
                 SettingsScreen(preferences = container.displayPreferences)
             }
@@ -156,6 +164,7 @@ fun RtspApp(
                     onBack = { navController.popBackStack() },
                     onEdit = { navController.navigate(Routes.edit(it)) },
                     showClock = showClock,
+                    allowRecording = allowRecording,
                     pinchToZoom = pinchToZoom,
                 )
             }

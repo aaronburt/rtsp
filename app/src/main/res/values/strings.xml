@@ -4,7 +4,16 @@
 
     <string name="nav_cameras">Cameras</string>
     <string name="nav_multiview">Multiview</string>
+    <string name="nav_recordings">Recordings</string>
     <string name="nav_settings">Settings</string>
+    <string name="recordings_empty">No recordings yet. Press Record on a live view to save one.</string>
+    <string name="recordings_size_date">%1$s · %2$s</string>
+    <string name="recording_play">Play recording</string>
+    <string name="recording_delete">Delete recording</string>
+    <string name="recording_delete_title">Delete this recording?</string>
+    <string name="recording_delete_message">%1$s will be removed from this device.</string>
+    <string name="recording_no_player">No app installed to play this video.</string>
+    <string name="recording_failed">Recording stopped: %1$s</string>
 
     <string name="cameras_title">Cameras</string>
     <plurals name="cameras_count">
@@ -66,6 +75,8 @@
 
     <string name="fullscreen">Fullscreen</string>
     <string name="exit_fullscreen">Exit fullscreen</string>
+    <string name="record">Record</string>
+    <string name="stop_recording">Stop recording</string>
     <string name="action_snapshot">Snapshot</string>
     <string name="action_mute">Mute</string>
     <string name="action_unmute">Unmute</string>
@@ -75,6 +86,7 @@
     <string name="status_live">Live</string>
     <string name="status_pending">Connecting</string>
     <string name="status_error">Offline</string>
+    <string name="settings_recording_title">Recording</string>
     <string name="settings_live_title">Live view</string>
     <string name="settings_multiview_main_stream_title">Use main stream in multiview</string>
     <string name="settings_multiview_main_stream_subtitle">Uses the main stream for every tile instead of the sub stream. Uses more bandwidth and processing power.</string>
@@ -82,6 +94,8 @@
     <string name="settings_pinch_to_zoom_subtitle">Off by default. Zoom up to 4× and drag to pan in the single-camera view.</string>
     <string name="reset_zoom">Reset zoom</string>
     <string name="settings_show_clock_title">Show clock on video</string>
+    <string name="settings_allow_recording_title">Allow recording</string>
+    <string name="settings_allow_recording_subtitle">Shows the Record button on the live view. Video only; files are kept in the app and listed under Recordings.</string>
     <string name="settings_show_clock_subtitle">Off by default</string>
     <string name="detail_url">URL</string>
     <string name="detail_transport">Transport</string>

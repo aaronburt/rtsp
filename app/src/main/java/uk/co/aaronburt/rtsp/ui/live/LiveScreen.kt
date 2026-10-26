@@ -43,6 +43,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,9 +56,14 @@ import uk.co.aaronburt.rtsp.player.StreamStatus
 import uk.co.aaronburt.rtsp.ui.components.ImmersiveEffect
 import uk.co.aaronburt.rtsp.ui.components.SegmentedToggle
 import uk.co.aaronburt.rtsp.ui.components.StatusDot
+import uk.co.aaronburt.rtsp.ui.components.formatElapsed
 import uk.co.aaronburt.rtsp.ui.components.rememberClock
 import uk.co.aaronburt.rtsp.ui.theme.Amber
+import uk.co.aaronburt.rtsp.ui.theme.Danger
 import uk.co.aaronburt.rtsp.ui.theme.MonoSmall
+import uk.co.aaronburt.rtsp.ui.theme.OnDangerContainer
+import uk.co.aaronburt.rtsp.ui.theme.RecordingContainer
+import uk.co.aaronburt.rtsp.ui.theme.RecordingText
 import uk.co.aaronburt.rtsp.ui.theme.Scrim
 
 @Composable
@@ -67,6 +73,7 @@ fun LiveScreen(
     onBack: () -> Unit,
     onEdit: (String) -> Unit,
     showClock: Boolean,
+    allowRecording: Boolean,
     pinchToZoom: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -144,6 +151,20 @@ fun LiveScreen(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            if (allowRecording || state.recording) {
+                RecordButton(
+                    recording = state.recording,
+                    seconds = state.recordingSeconds,
+                    onClick = viewModel::toggleRecording,
+                )
+            }
+            state.recordingError?.let { message ->
+                Text(
+                    text = stringResource(R.string.recording_failed, message),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Danger,
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionButton(
                     icon = R.drawable.ic_photo_camera,
@@ -349,6 +370,38 @@ private fun DetailLine(label: String, value: String) {
             modifier = Modifier.padding(end = 4.dp),
         )
         Text(text = value, style = MonoSmall)
+    }
+}
+
+@Composable
+private fun RecordButton(recording: Boolean, seconds: Int, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().height(52.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = if (recording) RecordingContainer else MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.5.dp, if (recording) Danger else MaterialTheme.colorScheme.outline),
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(14.dp)
+                    .clip(if (recording) RoundedCornerShape(3.dp) else CircleShape)
+                    .background(Danger),
+            )
+            Text(
+                text = stringResource(if (recording) R.string.stop_recording else R.string.record),
+                color = if (recording) OnDangerContainer else MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (recording) {
+                Text(text = formatElapsed(seconds), style = MonoSmall.copy(fontSize = 14.sp), color = RecordingText)
+            }
+        }
     }
 }
 

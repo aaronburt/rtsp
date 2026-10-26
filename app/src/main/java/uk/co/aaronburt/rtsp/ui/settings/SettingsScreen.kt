@@ -22,6 +22,7 @@ import uk.co.aaronburt.rtsp.update.UpdateSettingsSection
 @Composable
 fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifier) {
     val showClock by preferences.showClock.collectAsStateWithLifecycle()
+    val allowRecording by preferences.allowRecording.collectAsStateWithLifecycle()
     val pinchToZoom by preferences.pinchToZoom.collectAsStateWithLifecycle()
     val multiviewMainStream by preferences.multiviewMainStream.collectAsStateWithLifecycle()
     Column(
@@ -32,6 +33,14 @@ fun SettingsScreen(preferences: DisplayPreferences, modifier: Modifier = Modifie
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(text = stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium)
+        SettingsSection(title = stringResource(R.string.settings_recording_title)) {
+            SwitchRow(
+                title = stringResource(R.string.settings_allow_recording_title),
+                subtitle = stringResource(R.string.settings_allow_recording_subtitle),
+                checked = allowRecording,
+                onCheckedChange = preferences::setAllowRecording,
+            )
+        }
         SettingsSection(title = stringResource(R.string.settings_live_title)) {
             SwitchRow(
                 title = stringResource(R.string.settings_multiview_main_stream_title),

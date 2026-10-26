@@ -16,7 +16,7 @@ private const val RTSP_TIMEOUT_MS = 8_000L
 private const val MIN_BUFFER_MS = 1_000
 
 @OptIn(UnstableApi::class)
-class Media3Engine(context: Context) : PlayerEngine {
+class Media3Engine(context: Context, private val tap: VideoSampleTap? = null) : PlayerEngine {
     private val appContext = context.applicationContext
     private var player: ExoPlayer? = null
     private var listener: PlayerEngine.Listener? = null
@@ -70,7 +70,9 @@ class Media3Engine(context: Context) : PlayerEngine {
             .setForceUseRtpTcp(source.transport == RtspTransport.TCP)
             .setTimeoutMs(RTSP_TIMEOUT_MS)
             .createMediaSource(MediaItem.fromUri(source.url))
-        val created = ExoPlayer.Builder(appContext).setLoadControl(loadControl).build()
+        val created = ExoPlayer.Builder(appContext, TappingRenderersFactory(appContext, tap))
+            .setLoadControl(loadControl)
+            .build()
         created.addListener(playerListener)
         created.setVideoSurface(surface)
         created.volume = if (muted) 0f else 1f
@@ -85,6 +87,7 @@ class Media3Engine(context: Context) : PlayerEngine {
         player = null
         current.removeListener(playerListener)
         current.release()
+        tap?.onStopped()
     }
 
     override fun release() {
