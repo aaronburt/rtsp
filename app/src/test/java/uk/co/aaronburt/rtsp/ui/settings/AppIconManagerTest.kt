@@ -15,11 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Robolectric.buildActivity
-import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import uk.co.aaronburt.rtsp.LauncherActivity
-import uk.co.aaronburt.rtsp.MainActivity
 
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [28, 35])
@@ -48,23 +44,11 @@ class AppIconManagerTest {
             assertEquals(expectedName, packageManager.getLaunchIntentForPackage(context.packageName)?.component?.className)
             assertEquals(icon, AppIconManager(context).current)
             val alias = packageManager.getActivityInfo(ComponentName(context.packageName, expectedName), 0)
-            assertEquals("${context.packageName}.LauncherActivity", alias.targetActivity)
+            assertEquals("${context.packageName}.MainActivity", alias.targetActivity)
             assertTrue(packageManager.getActivityInfo(
                 ComponentName(context.packageName, "${context.packageName}.MainActivity"), 0,
             ).enabled)
         }
-    }
-
-    @Test
-    fun launcherHandsOffToAStableAppTaskAndFinishes() {
-        val activity = buildActivity(LauncherActivity::class.java).create().get()
-        val started = shadowOf(activity).nextStartedActivity
-        assertEquals(ComponentName(context, MainActivity::class.java), started.component)
-        assertTrue(started.flags and Intent.FLAG_ACTIVITY_NEW_TASK != 0)
-        assertTrue(started.flags and Intent.FLAG_ACTIVITY_SINGLE_TOP != 0)
-        assertTrue(activity.isFinishing)
-        val launcherInfo = packageManager.getActivityInfo(ComponentName(context, LauncherActivity::class.java), 0)
-        assertTrue(launcherInfo.taskAffinity.isNullOrEmpty())
     }
 
     @Test
