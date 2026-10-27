@@ -50,7 +50,7 @@ Since 0.7.x, Google Play Protect may show "Harmful app blocked" or "This app may
 
 If you are comfortable with it, tap **More details** and then **Install anyway**. If you would rather check first:
 
-- **VirusTotal scan**: scan results for the latest release are linked here.
+- **VirusTotal scan**: results for each release are also linked from its release notes.
   <!-- virustotal-start -->
   _VirusTotal link for the latest release will be added here automatically._
   <!-- virustotal-end -->
