@@ -120,14 +120,14 @@ jobs:
           git fetch origin main
           BRANCH="virustotal-$GITHUB_REF_NAME"
           git checkout -B "$BRANCH" origin/main
-          BLOCK="<!-- virustotal:start -->
+          BLOCK="<!-- virustotal-start -->
           **VirusTotal ($GITHUB_REF_NAME):** [$VT_SUMMARY detections]($VT_URL)
-          <!-- virustotal:end -->"
+          <!-- virustotal-end -->"
           python3 - "$BLOCK" <<'PY'
           import re, sys
           block = "\n".join(l.strip() for l in sys.argv[1].splitlines())
           text = open("README.md").read()
-          text = re.sub(r"<!-- virustotal:start -->.*?<!-- virustotal:end -->", lambda m: block, text, flags=re.S)
+          text = re.sub(r"<!-- virustotal[:-]start -->.*?<!-- virustotal[:-]end -->", lambda m: block, text, flags=re.S)
           open("README.md", "w").write(text)
           PY
           git diff --quiet README.md && exit 0
