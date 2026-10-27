@@ -87,8 +87,8 @@ jobs:
             SUMMARY="scan pending"
           fi
           {
-            echo "VT_URL=$URL"
-            echo "VT_SUMMARY=$SUMMARY"
+            echo "VT_URL='$URL'"
+            echo "VT_SUMMARY='$SUMMARY'"
           } >> "$RUNNER_TEMP/vt.env"
           echo "VirusTotal: $SUMMARY $URL"
 
@@ -103,8 +103,19 @@ jobs:
             printf '**VirusTotal:** [%s detections](%s)\n\n' "$VT_SUMMARY" "$VT_URL" > "$RUNNER_TEMP/notes.md"
             FLAGS="$FLAGS --notes-file $RUNNER_TEMP/notes.md"
           fi
-          # --generate-notes appends the usual changelog after any --notes-file text.
-          gh release create "$GITHUB_REF_NAME" "rtsp-${GITHUB_REF_NAME}.apk" --generate-notes $FLAGS
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            # Re-run: refresh the APK and prepend the VirusTotal line to the existing notes.
+            gh release upload "$GITHUB_REF_NAME" "rtsp-${GITHUB_REF_NAME}.apk" --clobber
+            if [ -f "$RUNNER_TEMP/notes.md" ]; then
+              gh release view "$GITHUB_REF_NAME" --json body --jq .body \
+                | grep -v '^\*\*VirusTotal:\*\*' > "$RUNNER_TEMP/old-notes.md" || true
+              cat "$RUNNER_TEMP/notes.md" "$RUNNER_TEMP/old-notes.md" > "$RUNNER_TEMP/new-notes.md"
+              gh release edit "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/new-notes.md"
+            fi
+          else
+            # --generate-notes appends the usual changelog after any --notes-file text.
+            gh release create "$GITHUB_REF_NAME" "rtsp-${GITHUB_REF_NAME}.apk" --generate-notes $FLAGS
+          fi
 
       # Direct pushes to main can be blocked by branch protection, so the README
       # update goes through a pull request. This needs Settings -> Actions ->
