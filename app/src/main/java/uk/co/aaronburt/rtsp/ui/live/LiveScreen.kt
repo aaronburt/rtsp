@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.movableContentOf
@@ -110,7 +111,7 @@ fun LiveScreen(
     if (fullscreenOverride == true) LandscapeLockEffect()
     ImmersiveEffect(enabled = fullscreen && !pipState.videoOnly)
     BackHandler(enabled = fullscreenOverride == true && !pipState.videoOnly) { fullscreenOverride = false }
-    val clock = rememberClock()
+    val clock = rememberClock(enabled = showClock)
     val playerInfo = remember(camera.id) { mutableStateOf(PlayerInfo()) }
     val status = playerInfo.value.status
     val snapshot = rememberSnapshotAction(camera.id, playerInfo.value.snapshotSource)
@@ -292,7 +293,7 @@ private fun LiveHeader(
 
 @Composable
 private fun VideoOverlays(
-    clock: String,
+    clock: State<String>,
     showClock: Boolean,
     status: StreamStatus,
     fullscreen: Boolean,
@@ -327,7 +328,7 @@ private fun VideoOverlays(
             ) {
                 if (fullscreen) StatusDot(status = status)
                 if (showClock) {
-                    Text(text = clock, style = MonoSmall, color = Color.White)
+                    Text(text = clock.value, style = MonoSmall, color = Color.White)
                 }
             }
         }
