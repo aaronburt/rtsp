@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   release:
@@ -116,36 +115,3 @@ jobs:
             # --generate-notes appends the usual changelog after any --notes-file text.
             gh release create "$GITHUB_REF_NAME" "rtsp-${GITHUB_REF_NAME}.apk" --generate-notes $FLAGS
           fi
-
-      # Direct pushes to main can be blocked by branch protection, so the README
-      # update goes through a pull request. This needs Settings -> Actions ->
-      # General -> "Allow GitHub Actions to create and approve pull requests".
-      - name: Open README PR with VirusTotal link
-        if: ${{ !contains(github.ref_name, '-') }}
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          [ -f "$RUNNER_TEMP/vt.env" ] || exit 0
-          . "$RUNNER_TEMP/vt.env"
-          git fetch origin main
-          BRANCH="virustotal-$GITHUB_REF_NAME"
-          git checkout -B "$BRANCH" origin/main
-          BLOCK="<!-- virustotal-start -->
-          **VirusTotal ($GITHUB_REF_NAME):** [$VT_SUMMARY detections]($VT_URL)
-          <!-- virustotal-end -->"
-          python3 - "$BLOCK" <<'PY'
-          import re, sys
-          block = "\n".join(l.strip() for l in sys.argv[1].splitlines())
-          text = open("README.md").read()
-          text = re.sub(r"<!-- virustotal[:-]start -->.*?<!-- virustotal[:-]end -->", lambda m: block, text, flags=re.S)
-          open("README.md", "w").write(text)
-          PY
-          git diff --quiet README.md && exit 0
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "docs: VirusTotal result for $GITHUB_REF_NAME"
-          git push -f origin "$BRANCH"
-          gh pr create --base main --head "$BRANCH" \
-            --title "docs: VirusTotal result for $GITHUB_REF_NAME" \
-            --body "Automated update of the README VirusTotal link after releasing $GITHUB_REF_NAME."
