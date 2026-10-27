@@ -44,9 +44,18 @@
 
 Download the latest APK from [GitHub Releases](https://github.com/aaronburt/rtsp/releases/latest) and install it. Requires Android 8.0 or newer. The app checks GitHub Releases for new versions and can download and install updates itself.
 
-<!-- virustotal:start -->
-VirusTotal results for each release are linked from its release notes.
-<!-- virustotal:end -->
+## Google Play Protect warning
+
+Since 0.7.x, Google Play Protect may show "Harmful app blocked" or "This app may be harmful" when you install the APK. This is believed to be a false positive. Nothing that Play Protect typically flags has changed since 0.6.0: the permissions, the dependencies and the signing key are the same. The app is a small open-source viewer with no accounts and no cloud service, and Play Protect often flags new or rarely installed sideloaded APKs that it has not seen before.
+
+If you are comfortable with it, tap **More details** and then **Install anyway**. If you would rather check first:
+
+- **VirusTotal scan**: results for each release are also linked from its release notes.
+  <!-- virustotal-start -->
+  _VirusTotal link for the latest release will be added here automatically._
+  <!-- virustotal-end -->
+- **Signing certificate**: check that the APK is signed by the same key as every other release with `apksigner verify --print-certs app-github-universal-release.apk` and compare the SHA-256 digest with the one published on the release page. The same key signs updates, and Android refuses to install an update signed with a different one.
+- **Build from source**: the code is all in this repository. Run `./gradlew assembleGithubRelease` (or `assembleFdroidRelease`) and install the result yourself. See the [workflow](.github/workflows/release.yml) for how releases are built.
 
 ## Licence
 
