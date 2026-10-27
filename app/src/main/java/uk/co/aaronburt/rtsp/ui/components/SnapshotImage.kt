@@ -1,5 +1,6 @@
 package uk.co.aaronburt.rtsp.ui.components
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.text.format.DateUtils
 import androidx.compose.foundation.Image
@@ -67,7 +68,9 @@ private fun rememberNowMillis(): State<Long> {
 fun SnapshotImage(snapshot: Snapshot, modifier: Modifier = Modifier, alpha: Float = 1f) {
     val bitmap by produceState<ImageBitmap?>(initialValue = null, snapshot.file, snapshot.capturedAt) {
         value = withContext(Dispatchers.IO) {
-            BitmapFactory.decodeFile(snapshot.file.path)?.asImageBitmap()
+            // JPEGs have no alpha, so RGB_565 halves the decoded size.
+            val options = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.RGB_565 }
+            BitmapFactory.decodeFile(snapshot.file.path, options)?.asImageBitmap()
         }
     }
     bitmap?.let {

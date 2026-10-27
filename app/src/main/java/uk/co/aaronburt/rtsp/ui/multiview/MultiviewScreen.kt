@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -83,7 +84,7 @@ fun MultiviewScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var layoutIndex by rememberSaveable { mutableIntStateOf(GridLayout.Quad.ordinal) }
     val layout = GridLayout.entries[layoutIndex]
-    val clock = rememberClock()
+    val clock = rememberClock(enabled = showClock)
     LandscapeLockEffect()
     ImmersiveEffect(enabled = true)
 
@@ -228,7 +229,7 @@ private fun MultiviewTile(
 
 @Composable
 private fun ControlRail(
-    clock: String,
+    clock: State<String>,
     showClock: Boolean,
     layout: GridLayout,
     onLayout: (GridLayout) -> Unit,
@@ -251,7 +252,7 @@ private fun ControlRail(
                 )
             }
             if (showClock) {
-                Text(text = clock, style = MonoTiny.copy(fontSize = 11.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = clock.value, style = MonoTiny.copy(fontSize = 11.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         Surface(

@@ -6,6 +6,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.view.Surface
 import androidx.annotation.OptIn
+import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -42,7 +43,15 @@ class Media3Engine(context: Context, private val tap: VideoSampleTap? = null) : 
 
     override fun setMuted(muted: Boolean) {
         this.muted = muted
-        player?.volume = if (muted) 0f else 1f
+        player?.let { applyMuted(it, muted) }
+    }
+
+    // A muted stream does not need its audio track: skipping it avoids an audio decoder and its RTP traffic.
+    private fun applyMuted(player: ExoPlayer, muted: Boolean) {
+        player.volume = if (muted) 0f else 1f
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, muted)
+            .build()
     }
 
     override fun load(source: StreamSource) {
@@ -90,7 +99,7 @@ class Media3Engine(context: Context, private val tap: VideoSampleTap? = null) : 
             metrics.frames.incrementAndGet()
         }
         created.setVideoSurface(surface)
-        created.volume = if (muted) 0f else 1f
+        applyMuted(created, muted)
         created.setMediaSource(mediaSource)
         created.playWhenReady = true
         created.prepare()
