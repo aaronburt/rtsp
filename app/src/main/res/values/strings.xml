@@ -6,7 +6,7 @@
     <string name="app_icon_tally_lens">Tally lens</string>
     <string name="app_icon_stream_lens">Stream lens</string>
     <string name="app_icon_quad_view">Quad view</string>
-    <string name="app_icon_launcher_hint">Your launcher may take a moment to show the new icon.</string>
+    <string name="app_icon_launcher_hint">Your launcher may take a moment to show the new icon, and the app may close while it switches. Home screen shortcuts may need re-adding.</string>
     <string name="app_icon_failed">Could not change the app icon. Please try again.</string>
     <string name="camera_backup_title">Encrypted camera backup</string>
     <string name="camera_backup_summary">Save your camera settings and credentials as encrypted QR images, then restore them from your photo library.</string>

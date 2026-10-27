@@ -4,21 +4,20 @@ import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Robolectric.buildActivity
-import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import uk.co.aaronburt.rtsp.LauncherActivity
 import uk.co.aaronburt.rtsp.MainActivity
 
 @RunWith(RobolectricTestRunner::class)
@@ -48,7 +47,7 @@ class AppIconManagerTest {
             assertEquals(expectedName, packageManager.getLaunchIntentForPackage(context.packageName)?.component?.className)
             assertEquals(icon, AppIconManager(context).current)
             val alias = packageManager.getActivityInfo(ComponentName(context.packageName, expectedName), 0)
-            assertEquals("${context.packageName}.LauncherActivity", alias.targetActivity)
+            assertEquals("${context.packageName}.MainActivity", alias.targetActivity)
             assertTrue(packageManager.getActivityInfo(
                 ComponentName(context.packageName, "${context.packageName}.MainActivity"), 0,
             ).enabled)
@@ -56,15 +55,39 @@ class AppIconManagerTest {
     }
 
     @Test
-    fun launcherHandsOffToAStableAppTaskAndFinishes() {
-        val activity = buildActivity(LauncherActivity::class.java).create().get()
-        val started = shadowOf(activity).nextStartedActivity
-        assertEquals(ComponentName(context, MainActivity::class.java), started.component)
-        assertTrue(started.flags and Intent.FLAG_ACTIVITY_NEW_TASK != 0)
-        assertTrue(started.flags and Intent.FLAG_ACTIVITY_SINGLE_TOP != 0)
-        assertTrue(activity.isFinishing)
-        val launcherInfo = packageManager.getActivityInfo(ComponentName(context, LauncherActivity::class.java), 0)
-        assertTrue(launcherInfo.taskAffinity.isNullOrEmpty())
+    fun launcherAliasesOpenTheVisibleMainActivityDirectly() {
+        val main = ComponentName(context, MainActivity::class.java).className
+        for (icon in AppIcon.entries) {
+            val alias = packageManager.getActivityInfo(
+                ComponentName(context.packageName, "${context.packageName}.${icon.alias}"),
+                PackageManager.MATCH_DISABLED_COMPONENTS,
+            )
+            assertEquals(main, alias.targetActivity)
+            assertTrue(alias.exported)
+        }
+        // MainActivity is only reachable through the launcher aliases.
+        assertFalse(packageManager.getActivityInfo(ComponentName(context, MainActivity::class.java), 0).exported)
+    }
+
+    /**
+     * Guards against reintroducing the v0.7.0 launcher trampoline. An invisible activity that
+     * hides from recents, combined with toggling launcher components at runtime, matches
+     * icon-hiding malware heuristics and is the likely reason Play Protect flagged v0.7.0 on install.
+     */
+    @Test
+    fun noDeclaredActivityIsInvisibleOrHiddenFromRecents() {
+        val activities = packageManager.getPackageInfo(
+            context.packageName,
+            PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS,
+        ).activities.orEmpty()
+        assertTrue(activities.isNotEmpty())
+        for (activity in activities) {
+            assertTrue("${activity.name} uses Theme.NoDisplay", activity.theme != android.R.style.Theme_NoDisplay)
+            assertTrue(
+                "${activity.name} is excluded from recents",
+                activity.flags and ActivityInfo.FLAG_EXCLUDE_FROM_RECENTS == 0,
+            )
+        }
     }
 
     @Test

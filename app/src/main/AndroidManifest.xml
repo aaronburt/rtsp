@@ -30,19 +30,18 @@
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
-            android:exported="true" />
+            android:exported="false" />
 
-        <activity
-            android:name=".LauncherActivity"
-            android:exported="false"
-            android:theme="@android:style/Theme.NoDisplay"
-            android:taskAffinity=""
-            android:noHistory="true"
-            android:excludeFromRecents="true" />
-
+        <!--
+            Launcher icon choices. Each alias opens MainActivity directly; exactly one is
+            enabled at a time (see AppIconManager). Do not route these through an invisible
+            trampoline activity (Theme.NoDisplay / excludeFromRecents): combined with runtime
+            launcher-component toggling, that pattern is flagged by Play Protect.
+            Alias names must stay stable so users' chosen icon survives updates.
+        -->
         <activity-alias
             android:name=".LauncherViewfinder"
-            android:targetActivity=".LauncherActivity"
+            android:targetActivity=".MainActivity"
             android:enabled="true"
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
@@ -55,7 +54,7 @@
 
         <activity-alias
             android:name=".LauncherTallyLens"
-            android:targetActivity=".LauncherActivity"
+            android:targetActivity=".MainActivity"
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_tally_lens"
@@ -68,7 +67,7 @@
 
         <activity-alias
             android:name=".LauncherStreamLens"
-            android:targetActivity=".LauncherActivity"
+            android:targetActivity=".MainActivity"
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_stream_lens"
@@ -81,7 +80,7 @@
 
         <activity-alias
             android:name=".LauncherQuadView"
-            android:targetActivity=".LauncherActivity"
+            android:targetActivity=".MainActivity"
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_quad_view"
