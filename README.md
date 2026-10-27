@@ -40,6 +40,10 @@
 - Choose Viewfinder, Tally lens, Stream lens or Quad view under Settings → App icon, with themed icons on Android 13+
 - No accounts and no cloud service
 
+## Known issue under investigation
+
+Google Play Protect has reportedly flagged v0.7.0. The cause is not confirmed; the selectable launcher icons added in that release are one possible trigger. See [issue #50](https://github.com/aaronburt/rtsp/issues/50) for the investigation.
+
 ## Install
 
 Download the latest APK from [GitHub Releases](https://github.com/aaronburt/rtsp/releases/latest) and install it. Requires Android 8.0 or newer. The app checks GitHub Releases for new versions and can download and install updates itself.
