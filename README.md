@@ -44,6 +44,10 @@
 
 Download the latest APK from [GitHub Releases](https://github.com/aaronburt/rtsp/releases/latest) and install it. Requires Android 8.0 or newer. The app checks GitHub Releases for new versions and can download and install updates itself.
 
+<!-- virustotal:start -->
+VirusTotal results for each release are linked from its release notes.
+<!-- virustotal:end -->
+
 ## Licence
 
 Apache License 2.0. See [LICENSE](LICENSE).
