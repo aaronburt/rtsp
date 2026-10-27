@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_app_icon">App icon</string>
+    <string name="app_icon_choose">Choose app icon</string>
+    <string name="app_icon_viewfinder">Viewfinder (default)</string>
+    <string name="app_icon_tally_lens">Tally lens</string>
+    <string name="app_icon_stream_lens">Stream lens</string>
+    <string name="app_icon_quad_view">Quad view</string>
+    <string name="app_icon_launcher_hint">Your launcher may take a moment to show the new icon.</string>
+    <string name="app_icon_failed">Could not change the app icon. Please try again.</string>
     <string name="camera_backup_title">Encrypted camera backup</string>
     <string name="camera_backup_summary">Save your camera settings and credentials as encrypted QR images, then restore them from your photo library.</string>
     <string name="camera_backup_create">Create backup (%1$d)</string>

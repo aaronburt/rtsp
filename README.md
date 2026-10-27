@@ -37,6 +37,7 @@
 - Multiview grids of 1, 2x2 or 2x3 using sub streams to save bandwidth
 - Favourites, search and last-seen snapshots
 - Optional image preview refresh every 15 seconds for visible cameras in the camera list
+- Choose Viewfinder, Tally lens, Stream lens or Quad view under Settings → App icon, with themed icons on Android 13+
 - No accounts and no cloud service
 
 ## Install
