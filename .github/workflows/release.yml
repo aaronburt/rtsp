@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   release:
@@ -41,10 +42,99 @@ jobs:
       - name: Rename APK
         run: cp app/build/outputs/apk/github/release/app-github-universal-release.apk "rtsp-${GITHUB_REF_NAME}.apk"
 
+      # A VirusTotal outage or a missing key must never block a release, so this
+      # step only ever writes a summary to $RUNNER_TEMP/vt.env and exits 0.
+      - name: Scan APK with VirusTotal
+        id: virustotal
+        env:
+          VT_API_KEY: ${{ secrets.VT_API_KEY }}
+        run: |
+          APK="rtsp-${GITHUB_REF_NAME}.apk"
+          if [ -z "$VT_API_KEY" ]; then
+            echo "VT_API_KEY not set, skipping VirusTotal scan"
+            exit 0
+          fi
+          SHA256=$(sha256sum "$APK" | cut -d' ' -f1)
+          API=https://www.virustotal.com/api/v3
+
+          # Files over 32 MB need a one-off upload URL.
+          if [ "$(stat -c%s "$APK")" -gt 33554432 ]; then
+            UPLOAD_URL=$(curl -sS --fail -H "x-apikey: $VT_API_KEY" "$API/files/upload_url" | jq -r .data)
+          else
+            UPLOAD_URL="$API/files"
+          fi
+          ANALYSIS_ID=$(curl -sS --fail -H "x-apikey: $VT_API_KEY" -F "file=@$APK" "$UPLOAD_URL" | jq -r .data.id) || {
+            echo "VirusTotal upload failed, skipping"; exit 0; }
+
+          # Poll until the analysis completes (up to ~10 minutes).
+          STATS=""
+          for _ in $(seq 1 40); do
+            sleep 15
+            RESP=$(curl -sS -H "x-apikey: $VT_API_KEY" "$API/analyses/$ANALYSIS_ID") || continue
+            if [ "$(echo "$RESP" | jq -r .data.attributes.status)" = "completed" ]; then
+              STATS=$(echo "$RESP" | jq -c .data.attributes.stats)
+              break
+            fi
+          done
+
+          URL="https://www.virustotal.com/gui/file/$SHA256"
+          if [ -n "$STATS" ]; then
+            MAL=$(echo "$STATS" | jq .malicious)
+            SUS=$(echo "$STATS" | jq .suspicious)
+            TOTAL=$(echo "$STATS" | jq '.malicious + .suspicious + .undetected + .harmless')
+            SUMMARY="$((MAL + SUS)) / $TOTAL"
+          else
+            SUMMARY="scan pending"
+          fi
+          {
+            echo "VT_URL=$URL"
+            echo "VT_SUMMARY=$SUMMARY"
+          } >> "$RUNNER_TEMP/vt.env"
+          echo "VirusTotal: $SUMMARY $URL"
+
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           FLAGS=""
           case "$GITHUB_REF_NAME" in *-*) FLAGS="--prerelease" ;; esac
+          if [ -f "$RUNNER_TEMP/vt.env" ]; then
+            . "$RUNNER_TEMP/vt.env"
+            printf '**VirusTotal:** [%s detections](%s)\n\n' "$VT_SUMMARY" "$VT_URL" > "$RUNNER_TEMP/notes.md"
+            FLAGS="$FLAGS --notes-file $RUNNER_TEMP/notes.md"
+          fi
+          # --generate-notes appends the usual changelog after any --notes-file text.
           gh release create "$GITHUB_REF_NAME" "rtsp-${GITHUB_REF_NAME}.apk" --generate-notes $FLAGS
+
+      # Direct pushes to main can be blocked by branch protection, so the README
+      # update goes through a pull request. This needs Settings -> Actions ->
+      # General -> "Allow GitHub Actions to create and approve pull requests".
+      - name: Open README PR with VirusTotal link
+        if: ${{ !contains(github.ref_name, '-') }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -f "$RUNNER_TEMP/vt.env" ] || exit 0
+          . "$RUNNER_TEMP/vt.env"
+          git fetch origin main
+          BRANCH="virustotal-$GITHUB_REF_NAME"
+          git checkout -B "$BRANCH" origin/main
+          BLOCK="<!-- virustotal:start -->
+          **VirusTotal ($GITHUB_REF_NAME):** [$VT_SUMMARY detections]($VT_URL)
+          <!-- virustotal:end -->"
+          python3 - "$BLOCK" <<'PY'
+          import re, sys
+          block = "\n".join(l.strip() for l in sys.argv[1].splitlines())
+          text = open("README.md").read()
+          text = re.sub(r"<!-- virustotal:start -->.*?<!-- virustotal:end -->", lambda m: block, text, flags=re.S)
+          open("README.md", "w").write(text)
+          PY
+          git diff --quiet README.md && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "docs: VirusTotal result for $GITHUB_REF_NAME"
+          git push -f origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "docs: VirusTotal result for $GITHUB_REF_NAME" \
+            --body "Automated update of the README VirusTotal link after releasing $GITHUB_REF_NAME."
